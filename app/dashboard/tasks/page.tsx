@@ -7,33 +7,31 @@ import { formatDate } from '@/lib/utils';
 import Link from 'next/link';
 import { useState } from 'react';
 import { BusinessDirection, TaskStatus } from '@/types';
+import { TASK_STATUS_LABELS, BUSINESS_DIRECTION_LABELS } from '@/lib/constants';
+
+// 获取业务类型名称
+function getBusinessTypeName(task: any): string {
+  const direction = BUSINESS_DIRECTION_LABELS[task.businessDirection] || task.businessDirection;
+  return `${direction}申报`;
+}
 
 export default function TasksPage() {
   const { tasks, deleteTask } = useTaskStore();
   const [searchText, setSearchText] = useState('');
-  const [statusFilter, setStatusFilter] = useState<TaskStatus | 'all'>('all');
+  const [statusFilter, setStatusFilter] = useState<string>('all');
   const [directionFilter, setDirectionFilter] = useState<BusinessDirection | 'all'>('all');
-
-  const statusMap = {
-    pending: { text: '待处理', color: 'orange' },
-    processing: { text: '处理中', color: 'blue' },
-    completed: { text: '已完成', color: 'green' },
-  };
 
   // 过滤任务
   const filteredTasks = tasks.filter((task) => {
+    const businessName = getBusinessTypeName(task);
     const matchSearch =
       task.taskNo.toLowerCase().includes(searchText.toLowerCase()) ||
-      task.businessName.toLowerCase().includes(searchText.toLowerCase()) ||
-      task.preEntryNo.toLowerCase().includes(searchText.toLowerCase());
+      businessName.toLowerCase().includes(searchText.toLowerCase()) ||
+      (task.preEntryNo && task.preEntryNo.toLowerCase().includes(searchText.toLowerCase()));
 
     const matchStatus = statusFilter === 'all' || task.status === statusFilter;
 
-    const matchDirection =
-      directionFilter === 'all' ||
-      (directionFilter === 'import' && task.businessType.startsWith('import')) ||
-      (directionFilter === 'export' && task.businessType.startsWith('export')) ||
-      (directionFilter === 'transfer' && task.businessType.startsWith('transfer'));
+    const matchDirection = directionFilter === 'all' || task.businessDirection === directionFilter;
 
     return matchSearch && matchStatus && matchDirection;
   });
@@ -50,20 +48,22 @@ export default function TasksPage() {
       dataIndex: 'preEntryNo',
       key: 'preEntryNo',
       width: 180,
+      render: (value: string | null) => value || '待生成',
     },
     {
       title: '业务类型',
-      dataIndex: 'businessName',
       key: 'businessName',
+      render: (_: any, record: any) => getBusinessTypeName(record),
     },
     {
       title: '状态',
       dataIndex: 'status',
       key: 'status',
       width: 100,
-      render: (status: TaskStatus) => (
-        <Tag color={statusMap[status].color}>{statusMap[status].text}</Tag>
-      ),
+      render: (status: TaskStatus) => {
+        const statusInfo = TASK_STATUS_LABELS[status] || { text: status, color: 'default' };
+        return <Tag color={statusInfo.color}>{statusInfo.text}</Tag>;
+      },
     },
     {
       title: '材料数量',
@@ -126,9 +126,13 @@ export default function TasksPage() {
             style={{ width: 120 }}
             options={[
               { label: '全部状态', value: 'all' },
-              { label: '待处理', value: 'pending' },
-              { label: '处理中', value: 'processing' },
-              { label: '已完成', value: 'completed' },
+              { label: '草稿', value: 'DRAFT' },
+              { label: '上传中', value: 'UPLOADING' },
+              { label: '提取中', value: 'EXTRACTING' },
+              { label: '编辑中', value: 'EDITING' },
+              { label: '生成中', value: 'GENERATING' },
+              { label: '已完成', value: 'COMPLETED' },
+              { label: '失败', value: 'FAILED' },
             ]}
           />
           <Select
@@ -137,9 +141,9 @@ export default function TasksPage() {
             style={{ width: 120 }}
             options={[
               { label: '全部业务', value: 'all' },
-              { label: '进口', value: 'import' },
-              { label: '出口', value: 'export' },
-              { label: '转仓', value: 'transfer' },
+              { label: '进口', value: 'IMPORT' },
+              { label: '出口', value: 'EXPORT' },
+              { label: '转仓', value: 'TRANSFER' },
             ]}
           />
         </Space>

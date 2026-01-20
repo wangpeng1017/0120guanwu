@@ -11,10 +11,21 @@ import {
 import { useTaskStore } from '@/lib/store';
 import { generateDownloadFileName, getFileExtension } from '@/lib/utils';
 import JSZip from 'jszip';
+import { Material, FileType } from '@/types';
 
 interface DownloadPanelProps {
   taskId: string;
 }
+
+// 文件类型标签映射
+const fileTypeLabel: Record<FileType, string> = {
+  BILL_OF_LADING: '提单',
+  INVOICE: '发票',
+  PACKING_LIST: '装箱单',
+  CONTRACT: '合同',
+  CERTIFICATE: '原产地证',
+  OTHER: '其他',
+};
 
 export function DownloadPanel({ taskId }: DownloadPanelProps) {
   const { tasks } = useTaskStore();
@@ -33,18 +44,18 @@ export function DownloadPanel({ taskId }: DownloadPanelProps) {
   };
 
   // 单个文件下载
-  const handleSingleDownload = (material: any) => {
+  const handleSingleDownload = (material: Material) => {
     const link = document.createElement('a');
     link.href = material.fileUrl;
     link.download = generateDownloadFileName(
-      material.fileName,
-      material.fileType,
+      material.originalName,
+      fileTypeLabel[material.fileType],
       task?.preEntryNo || ''
     );
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
-    message.success(`已下载: ${material.fileType}_${task?.preEntryNo}`);
+    message.success(`已下载: ${fileTypeLabel[material.fileType]}_${task?.preEntryNo || ''}`);
   };
 
   // 批量下载打包
@@ -55,27 +66,27 @@ export function DownloadPanel({ taskId }: DownloadPanelProps) {
     }
 
     const zip = new JSZip();
-    const folder = zip.folder(`${task.preEntryNo}_材料文件`);
+    const folder = zip.folder(`${task.preEntryNo || task.taskNo}_材料文件`);
 
     for (const material of task.materials) {
       try {
         const response = await fetch(material.fileUrl);
         const blob = await response.blob();
         const newName = generateDownloadFileName(
-          material.fileName,
-          material.fileType,
-          task.preEntryNo
+          material.originalName,
+          fileTypeLabel[material.fileType],
+          task.preEntryNo || task.taskNo
         );
         folder?.file(newName, blob);
       } catch (error) {
-        console.error('下载文件失败:', material.fileName, error);
+        console.error('下载文件失败:', material.originalName, error);
       }
     }
 
     const content = await zip.generateAsync({ type: 'blob' });
     const link = document.createElement('a');
     link.href = URL.createObjectURL(content);
-    link.download = `${task.preEntryNo}_材料文件.zip`;
+    link.download = `${task.preEntryNo || task.taskNo}_材料文件.zip`;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -115,16 +126,16 @@ export function DownloadPanel({ taskId }: DownloadPanelProps) {
                 ]}
               >
                 <List.Item.Meta
-                  avatar={getFileIcon(material.fileName)}
+                  avatar={getFileIcon(material.originalName)}
                   title={
                     <div className="flex items-center gap-2">
-                      <span>{material.fileName}</span>
-                      <Tag color="blue">{material.fileType}</Tag>
+                      <span>{material.originalName}</span>
+                      <Tag color="blue">{fileTypeLabel[material.fileType]}</Tag>
                     </div>
                   }
                   description={
                     <Space size="middle" className="text-sm">
-                      <span>下载后重命名为: {material.fileType}_{task.preEntryNo}.{getFileExtension(material.fileName)}</span>
+                      <span>下载后重命名为: {fileTypeLabel[material.fileType]}_{task.preEntryNo || task.taskNo}.{getFileExtension(material.originalName)}</span>
                     </Space>
                   }
                 />

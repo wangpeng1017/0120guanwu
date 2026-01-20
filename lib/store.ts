@@ -4,11 +4,12 @@ import { Task, TaskStatus, DeclarationData, Material } from '@/types';
 interface TaskStore {
   tasks: Task[];
   currentTask: Task | null;
-  addTask: (task: Omit<Task, 'id' | 'taskNo' | 'preEntryNo' | 'createdAt' | 'updatedAt'>) => Task;
+  addTask: (task: Omit<Task, 'id' | 'taskNo' | 'preEntryNo' | 'customsNo' | 'createdAt' | 'updatedAt' | 'materials' | 'declarations' | 'generatedFiles' | 'operationLogs'>) => Task;
   updateTask: (id: string, data: Partial<Task>) => void;
   deleteTask: (id: string) => void;
   setCurrentTask: (task: Task | null) => void;
   getTaskById: (id: string) => Task | undefined;
+  setTasks: (tasks: Task[]) => void;
 }
 
 // 生成任务编号
@@ -39,6 +40,11 @@ export const useTaskStore = create<TaskStore>((set, get) => ({
       id: crypto.randomUUID(),
       taskNo,
       preEntryNo,
+      customsNo: null,
+      materials: [],
+      declarations: [],
+      generatedFiles: [],
+      operationLogs: [],
       createdAt: now,
       updatedAt: now,
     };
@@ -74,6 +80,10 @@ export const useTaskStore = create<TaskStore>((set, get) => ({
 
   getTaskById: (id) => {
     return get().tasks.find((task) => task.id === id);
+  },
+
+  setTasks: (tasks) => {
+    set({ tasks });
   },
 }));
 

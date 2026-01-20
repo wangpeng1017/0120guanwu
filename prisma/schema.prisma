@@ -1,0 +1,140 @@
+// 报关系统 Prisma Schema
+// 业务类型枚举
+enum BusinessDirection {
+  IMPORT     // 进口
+  EXPORT     // 出口
+  TRANSFER   // 转仓
+}
+
+enum SupervisionLevel {
+  FIRST   // 一线
+  SECOND  // 二线
+}
+
+enum TradeMode {
+  GENERAL     // 一般贸易
+  PROCESSING  // 加工贸易
+}
+
+enum TaskStatus {
+  DRAFT       // 草稿
+  UPLOADING   // 上传中
+  EXTRACTING  // 提取中
+  EDITING     // 编辑中
+  GENERATING  // 生成中
+  COMPLETED   // 已完成
+  FAILED      // 失败
+}
+
+enum FileType {
+  BILL_OF_LADING    // 提单
+  INVOICE           // 发票
+  PACKING_LIST      // 装箱单
+  CONTRACT          // 合同
+  CERTIFICATE       // 原产地证
+  OTHER             // 其他
+}
+
+// 申报任务表
+model Task {
+  id                String            @id @default(cuid())
+  taskNo            String            @unique  // 任务编号
+  businessDirection BusinessDirection
+  supervisionLevel  SupervisionLevel
+  tradeMode         TradeMode
+  status            TaskStatus        @default(DRAFT)
+  preEntryNo        String?           // 预录入编号
+  customsNo         String?           // 海关编号
+
+  // 关联
+  materials         Material[]
+  declarations      Declaration[]
+  generatedFiles    GeneratedFile[]
+  operationLogs     OperationLog[]
+
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
+}
+
+// 材料文件表
+model Material {
+  id              String    @id @default(cuid())
+  taskId          String
+  task            Task      @relation(fields: [taskId], references: [id], onDelete: Cascade)
+
+  fileType        FileType
+  originalName    String
+  storedName      String    // 存储文件名（UUID）
+  fileUrl         String    // OSS URL
+  fileSize        Int       // 字节
+  mimeType        String
+
+  // 提取的数据
+  extractedData   Json?     // 从文件中提取的数据
+
+  createdAt       DateTime  @default(now())
+
+  @@index([taskId])
+}
+
+// 申报要素表
+model Declaration {
+  id              String    @id @default(cuid())
+  taskId          String
+  task            Task      @relation(fields: [taskId], references: [id], onDelete: Cascade)
+
+  // 表头数据（JSON格式，存储完整的报关单表头）
+  headerData      Json
+
+  // 表体数据（JSON数组，存储商品明细）
+  bodyData        Json
+
+  // AI提取的置信度（0-1）
+  confidenceScore Float?
+
+  isConfirmed     Boolean   @default(false) // 用户是否已确认
+
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@index([taskId])
+}
+
+// 生成的文件表
+model GeneratedFile {
+  id              String    @id @default(cuid())
+  taskId          String
+  task            Task      @relation(fields: [taskId], references: [id], onDelete: Cascade)
+
+  fileType        String    // import_declaration, export_declaration等
+  fileName        String
+  fileUrl         String
+  downloadCount   Int       @default(0)
+
+  createdAt       DateTime  @default(now())
+
+  @@index([taskId])
+}
+
+// 操作日志表
+model OperationLog {
+  id              String    @id @default(cuid())
+  taskId          String
+  task            Task      @relation(fields: [taskId], references: [id], onDelete: Cascade)
+
+  action          String    // create, upload, extract, generate, download等
+  details         Json?     // 操作详情
+  operator        String?   // 操作人
+
+  createdAt       DateTime  @default(now())
+
+  @@index([taskId])
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}

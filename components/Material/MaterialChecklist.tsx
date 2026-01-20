@@ -2,13 +2,33 @@
 
 import { Card, Checkbox, Progress, Space } from 'antd';
 import { MATERIAL_REQUIREMENTS } from '@/lib/constants';
+import { BusinessDirection, SupervisionLevel, TradeMode } from '@/types';
 
 interface MaterialChecklistProps {
-  businessType: string;
+  businessDirection: BusinessDirection;
+  supervisionLevel: SupervisionLevel;
+  tradeMode: TradeMode;
 }
 
-export function MaterialChecklist({ businessType }: MaterialChecklistProps) {
-  const requirements = MATERIAL_REQUIREMENTS[businessType] || [];
+// 构建材料清单的 key
+function buildMaterialKey(
+  businessDirection: BusinessDirection,
+  supervisionLevel: SupervisionLevel,
+  tradeMode: TradeMode
+): string {
+  const direction = businessDirection === 'IMPORT' ? 'import' : businessDirection === 'EXPORT' ? 'export' : 'transfer';
+  const level = supervisionLevel === 'FIRST' ? 'first' : 'second';
+  const mode = tradeMode === 'GENERAL' ? 'normal' : tradeMode === 'PROCESSING' ? 'processing' : 'normal';
+
+  if (direction === 'transfer') {
+    return level === 'first' ? 'transfer-out' : 'transfer-in';
+  }
+  return `${direction}-${level}-${mode}`;
+}
+
+export function MaterialChecklist({ businessDirection, supervisionLevel, tradeMode }: MaterialChecklistProps) {
+  const materialKey = buildMaterialKey(businessDirection, supervisionLevel, tradeMode);
+  const requirements = MATERIAL_REQUIREMENTS[materialKey] || [];
 
   const requiredCount = requirements.filter((r) => r.required).length;
   const uploadedCount = requirements.filter((r) => r.uploaded).length;

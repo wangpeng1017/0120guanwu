@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useCallback } from 'react';
-import { Card, Upload, List, Tag, Button, Image, Space, Modal } from 'antd';
+import { Card, Upload, List, Tag, Button, Image, Space, Modal, message } from 'antd';
 import {
   InboxOutlined,
   DeleteOutlined,
@@ -16,12 +16,24 @@ import {
 import type { UploadProps } from 'antd';
 import { useTaskStore } from '@/lib/store';
 import { formatFileSize, identifyFileType, validateFile } from '@/lib/utils';
-import { Material } from '@/types';
+import { Material, FileType } from '@/types';
 
 const { Dragger } = Upload;
 
 interface MaterialUploadProps {
   taskId: string;
+}
+
+// 将字符串类型转换为 FileType 枚举
+function toFileType(type: string): FileType {
+  const typeMap: Record<string, FileType> = {
+    '提单': 'BILL_OF_LADING',
+    '发票': 'INVOICE',
+    '装箱单': 'PACKING_LIST',
+    '合同': 'CONTRACT',
+    '原产地证': 'CERTIFICATE',
+  };
+  return typeMap[type] || 'OTHER';
 }
 
 export function MaterialUpload({ taskId }: MaterialUploadProps) {
@@ -31,45 +43,79 @@ export function MaterialUpload({ taskId }: MaterialUploadProps) {
   const [previewFile, setPreviewFile] = useState<{ url: string; type: string } | null>(null);
 
   const handleUpload = useCallback(
-    (file: File) => {
+    async (file: File) => {
       const validation = validateFile(file);
       if (!validation.valid) {
         message.error(validation.error);
         return false;
       }
 
-      // 创建模拟的文件 URL（实际项目中应该上传到服务器）
-      const url = URL.createObjectURL(file);
-      const fileType = identifyFileType(file.name);
+      try {
+        // 上传到服务器
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('taskId', taskId);
 
-      const newMaterial: Material = {
-        id: crypto.randomUUID(),
-        taskId,
-        fileType,
-        fileName: file.name,
-        fileSize: file.size,
-        fileUrl: url,
-        uploadedAt: new Date(),
-      };
+        const response = await fetch('/api/upload', {
+          method: 'POST',
+          body: formData,
+        });
 
-      // 更新任务材料列表
-      const updatedMaterials = [...(task?.materials || []), newMaterial];
-      updateTask(taskId, { materials: updatedMaterials });
+        const result = await response.json();
 
-      message.success(`${file.name} 上传成功`);
+        if (!result.success) {
+          message.error(result.error || '上传失败');
+          return false;
+        }
+
+        // 刷新任务列表
+        const tasksResponse = await fetch(`/api/tasks/${taskId}`);
+        const taskData = await tasksResponse.json();
+
+        if (taskData.success) {
+          updateTask(taskId, taskData.task);
+        }
+
+        message.success(`${file.name} 上传成功`);
+      } catch (error) {
+        console.error('上传失败:', error);
+        message.error('上传失败，请重试');
+      }
+
       return false; // 阻止默认上传行为
     },
     [task, taskId, updateTask]
   );
 
-  const handleDelete = (materialId: string) => {
-    const updatedMaterials = (task?.materials || []).filter((m) => m.id !== materialId);
-    updateTask(taskId, { materials: updatedMaterials });
-    message.success('文件已删除');
+  const handleDelete = async (materialId: string) => {
+    try {
+      const response = await fetch(`/api/upload?id=${materialId}`, {
+        method: 'DELETE',
+      });
+
+      const result = await response.json();
+
+      if (result.success) {
+        // 刷新任务列表
+        const tasksResponse = await fetch(`/api/tasks/${taskId}`);
+        const taskData = await tasksResponse.json();
+
+        if (taskData.success) {
+          updateTask(taskId, taskData.task);
+        }
+
+        message.success('文件已删除');
+      } else {
+        message.error(result.error || '删除失败');
+      }
+    } catch (error) {
+      console.error('删除失败:', error);
+      message.error('删除失败，请重试');
+    }
   };
 
   const handlePreview = (material: Material) => {
-    const ext = material.fileName.split('.').pop()?.toLowerCase();
+    const ext = material.originalName.split('.').pop()?.toLowerCase();
     const isImage = ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp'].includes(ext || '');
 
     setPreviewFile({
@@ -105,6 +151,16 @@ export function MaterialUpload({ taskId }: MaterialUploadProps) {
       return <FileZipOutlined {...iconProps} className="text-2xl text-orange-500" />;
     }
     return <FileOutlined {...iconProps} />;
+  };
+
+  // 文件类型标签映射
+  const fileTypeLabel: Record<FileType, string> = {
+    BILL_OF_LADING: '提单',
+    INVOICE: '发票',
+    PACKING_LIST: '装箱单',
+    CONTRACT: '合同',
+    CERTIFICATE: '原产地证',
+    OTHER: '其他',
   };
 
   return (
@@ -151,17 +207,17 @@ export function MaterialUpload({ taskId }: MaterialUploadProps) {
                   ]}
                 >
                   <List.Item.Meta
-                    avatar={getFileIcon(material.fileName)}
+                    avatar={getFileIcon(material.originalName)}
                     title={
                       <div className="flex items-center gap-2">
-                        <span>{material.fileName}</span>
-                        <Tag color="blue">{material.fileType}</Tag>
+                        <span>{material.originalName}</span>
+                        <Tag color="blue">{fileTypeLabel[material.fileType] || material.fileType}</Tag>
                       </div>
                     }
                     description={
                       <Space size="middle">
                         <span>{formatFileSize(material.fileSize)}</span>
-                        <span>{new Date(material.uploadedAt).toLocaleString()}</span>
+                        <span>{new Date(material.createdAt).toLocaleString()}</span>
                       </Space>
                     }
                   />
@@ -191,6 +247,3 @@ export function MaterialUpload({ taskId }: MaterialUploadProps) {
     </Card>
   );
 }
-
-// 临时导入 message
-import { message } from 'antd';

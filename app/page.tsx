@@ -14,9 +14,9 @@ import { DashboardLayout } from '@/components/Layout/DashboardLayout';
 function HomePageContent() {
   const { tasks } = useTaskStore();
 
-  const pendingTasks = tasks.filter((t) => t.status === 'pending').length;
-  const processingTasks = tasks.filter((t) => t.status === 'processing').length;
-  const completedTasks = tasks.filter((t) => t.status === 'completed').length;
+  const pendingTasks = tasks.filter((t) => t.status === 'DRAFT' || t.status === 'EDITING').length;
+  const processingTasks = tasks.filter((t) => t.status === 'UPLOADING' || t.status === 'EXTRACTING' || t.status === 'GENERATING').length;
+  const completedTasks = tasks.filter((t) => t.status === 'COMPLETED').length;
 
   const quickActions = [
     {

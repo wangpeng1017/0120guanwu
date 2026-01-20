@@ -1,4 +1,7 @@
-import { MaterialRequirement } from '@/types';
+import { MaterialRequirement, FileType } from '@/types';
+
+// 导出 FileType 供其他模块使用
+export type { FileType };
 
 // 业务类型配置
 export const BUSINESS_TYPES = {
@@ -197,3 +200,33 @@ export const ACCEPTED_FILE_TYPES = [
 
 // 文件大小限制 (50MB)
 export const MAX_FILE_SIZE = 50 * 1024 * 1024;
+
+// 任务状态标签
+export const TASK_STATUS_LABELS: Record<string, { text: string; color: string }> = {
+  DRAFT: { text: '草稿', color: 'default' },
+  UPLOADING: { text: '上传中', color: 'processing' },
+  EXTRACTING: { text: '提取中', color: 'processing' },
+  EDITING: { text: '编辑中', color: 'warning' },
+  GENERATING: { text: '生成中', color: 'processing' },
+  COMPLETED: { text: '已完成', color: 'success' },
+  FAILED: { text: '失败', color: 'error' },
+};
+
+// 业务方向标签
+export const BUSINESS_DIRECTION_LABELS: Record<string, string> = {
+  IMPORT: '进口',
+  EXPORT: '出口',
+  TRANSFER: '转仓',
+};
+
+// 监管环节标签
+export const SUPERVISION_LEVEL_LABELS: Record<string, string> = {
+  FIRST: '一线',
+  SECOND: '二线',
+};
+
+// 贸易方式标签
+export const TRADE_MODE_LABELS: Record<string, string> = {
+  GENERAL: '一般贸易',
+  PROCESSING: '加工贸易',
+};

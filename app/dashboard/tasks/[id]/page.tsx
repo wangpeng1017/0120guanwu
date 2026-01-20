@@ -25,6 +25,15 @@ import { MaterialChecklist } from '@/components/Material/MaterialChecklist';
 import { MaterialUpload } from '@/components/Material/MaterialUpload';
 import { DeclarationForm } from '@/components/Declaration/DeclarationForm';
 import { DownloadPanel } from '@/components/Declaration/DownloadPanel';
+import { TASK_STATUS_LABELS, BUSINESS_DIRECTION_LABELS, SUPERVISION_LEVEL_LABELS, TRADE_MODE_LABELS } from '@/lib/constants';
+
+// 获取业务类型名称
+function getBusinessTypeName(task: any): string {
+  const direction = BUSINESS_DIRECTION_LABELS[task.businessDirection] || task.businessDirection;
+  const level = SUPERVISION_LEVEL_LABELS[task.supervisionLevel] || task.supervisionLevel;
+  const mode = TRADE_MODE_LABELS[task.tradeMode] || task.tradeMode;
+  return `${direction}-${level}-${mode}`;
+}
 
 export default function TaskDetailPage() {
   const params = useParams();
@@ -72,11 +81,8 @@ export default function TaskDetailPage() {
     );
   }
 
-  const statusMap = {
-    pending: { text: '待处理', color: 'orange' },
-    processing: { text: '处理中', color: 'blue' },
-    completed: { text: '已完成', color: 'green' },
-  };
+  const statusInfo = TASK_STATUS_LABELS[task.status] || { text: task.status, color: 'default' };
+  const businessName = getBusinessTypeName(task);
 
   const handleTabChange = (key: string) => {
     setActiveTab(key);
@@ -94,15 +100,15 @@ export default function TaskDetailPage() {
             返回
           </Button>
           <div>
-            <h1 className="text-2xl font-bold">{task.businessName}</h1>
+            <h1 className="text-2xl font-bold">{businessName}</h1>
             <p className="text-gray-500 text-sm">
-              任务编号: {task.taskNo} | 预录入编号: {task.preEntryNo}
+              任务编号: {task.taskNo} | 预录入编号: {task.preEntryNo || '待生成'}
             </p>
           </div>
         </div>
         <div className="flex items-center gap-3">
-          <Tag color={statusMap[task.status].color} className="text-sm px-3 py-1">
-            {statusMap[task.status].text}
+          <Tag color={statusInfo.color} className="text-sm px-3 py-1">
+            {statusInfo.text}
           </Tag>
           <Button
             icon={<DownloadOutlined />}
@@ -117,10 +123,10 @@ export default function TaskDetailPage() {
       <Card title="任务信息">
         <Descriptions column={3} bordered>
           <Descriptions.Item label="任务编号">{task.taskNo}</Descriptions.Item>
-          <Descriptions.Item label="预录入编号">{task.preEntryNo}</Descriptions.Item>
-          <Descriptions.Item label="业务类型">{task.businessName}</Descriptions.Item>
+          <Descriptions.Item label="预录入编号">{task.preEntryNo || '待生成'}</Descriptions.Item>
+          <Descriptions.Item label="业务类型">{businessName}</Descriptions.Item>
           <Descriptions.Item label="状态">
-            <Tag color={statusMap[task.status].color}>{statusMap[task.status].text}</Tag>
+            <Tag color={statusInfo.color}>{statusInfo.text}</Tag>
           </Descriptions.Item>
           <Descriptions.Item label="创建时间">{formatDate(task.createdAt)}</Descriptions.Item>
           <Descriptions.Item label="更新时间">{formatDate(task.updatedAt)}</Descriptions.Item>
@@ -146,7 +152,7 @@ export default function TaskDetailPage() {
               ),
               children: (
                 <div className="space-y-6">
-                  <MaterialChecklist businessType={task.businessType} />
+                  <MaterialChecklist businessDirection={task.businessDirection} supervisionLevel={task.supervisionLevel} tradeMode={task.tradeMode} />
                   <MaterialUpload taskId={task.id} />
                 </div>
               ),

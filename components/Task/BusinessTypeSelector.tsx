@@ -1,9 +1,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Card, Radio, Space, Button, Typography, Divider } from 'antd';
+import { Card, Radio, Space, Button, Typography, Divider, message } from 'antd';
 import { BUSINESS_TYPES } from '@/lib/constants';
-import { useTaskStore } from '@/lib/store';
 import { useRouter } from 'next/navigation';
 
 const { Title, Paragraph } = Typography;
@@ -14,10 +13,10 @@ interface BusinessTypeSelectorProps {
 
 export function BusinessTypeSelector({ direction }: BusinessTypeSelectorProps) {
   const router = useRouter();
-  const { addTask } = useTaskStore();
   const [selectedLevel, setSelectedLevel] = useState<'first' | 'second'>('first');
   const [selectedMode, setSelectedMode] = useState<'normal' | 'processing'>('normal');
   const [selectedType, setSelectedType] = useState<string>('');
+  const [loading, setLoading] = useState(false);
 
   // 过滤出对应方向的业务类型
   const availableTypes = Object.entries(BUSINESS_TYPES)
@@ -50,19 +49,43 @@ export function BusinessTypeSelector({ direction }: BusinessTypeSelectorProps) {
     }
   };
 
-  const handleConfirm = () => {
+  const handleConfirm = async () => {
     if (!selectedType) return;
 
     const typeInfo = BUSINESS_TYPES[selectedType as keyof typeof BUSINESS_TYPES];
-    const newTask = addTask({
-      businessType: selectedType,
-      businessName: typeInfo.name as string,
-      status: 'pending',
-      materials: [],
-    });
+    setLoading(true);
 
-    // 跳转到材料上传页面（暂时跳转到任务详情）
-    router.push(`/dashboard/tasks/${newTask.id}`);
+    try {
+      // 映射到新的数据结构
+      const businessDirection = direction === 'import' ? 'IMPORT' : direction === 'export' ? 'EXPORT' : 'TRANSFER';
+      const supervisionLevel = selectedLevel === 'first' ? 'FIRST' : 'SECOND';
+      const tradeMode = selectedMode === 'normal' ? 'GENERAL' : 'PROCESSING';
+
+      // 调用 API 创建任务
+      const response = await fetch('/api/tasks', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          businessDirection,
+          supervisionLevel,
+          tradeMode,
+        }),
+      });
+
+      const result = await response.json();
+
+      if (result.success) {
+        message.success('任务创建成功');
+        router.push(`/dashboard/tasks/${result.task.id}`);
+      } else {
+        message.error(result.error || '创建任务失败');
+      }
+    } catch (error) {
+      console.error('创建任务失败:', error);
+      message.error('创建任务失败，请重试');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const getCurrentTypeInfo = () => {
@@ -173,6 +196,7 @@ export function BusinessTypeSelector({ direction }: BusinessTypeSelectorProps) {
             size="large"
             onClick={handleConfirm}
             disabled={!selectedType}
+            loading={loading}
           >
             创建申报任务
           </Button>
