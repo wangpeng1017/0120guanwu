@@ -148,11 +148,11 @@ export const MATERIAL_REQUIREMENTS: Record<string, MaterialRequirement[]> = {
 // 导航菜单配置
 export const MENU_ITEMS = [
   { key: '/', icon: 'HomeOutlined', label: '首页' },
-  { key: '/import', icon: 'DownloadOutlined', label: '进口申报' },
-  { key: '/export', icon: 'UploadOutlined', label: '出口申报' },
-  { key: '/transfer', icon: 'SwapOutlined', label: '转仓申报' },
-  { key: '/tasks', icon: 'UnorderedListOutlined', label: '任务管理' },
-  { key: '/history', icon: 'HistoryOutlined', label: '历史记录' },
+  { key: '/dashboard/import', icon: 'DownloadOutlined', label: '进口申报' },
+  { key: '/dashboard/export', icon: 'UploadOutlined', label: '出口申报' },
+  { key: '/dashboard/transfer', icon: 'SwapOutlined', label: '转仓申报' },
+  { key: '/dashboard/tasks', icon: 'UnorderedListOutlined', label: '任务管理' },
+  { key: '/dashboard/history', icon: 'HistoryOutlined', label: '历史记录' },
 ];
 
 // 文件类型映射
