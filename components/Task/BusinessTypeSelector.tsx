@@ -57,7 +57,7 @@ export function BusinessTypeSelector({ direction }: BusinessTypeSelectorProps) {
     });
 
     // 跳转到材料上传页面（暂时跳转到任务详情）
-    router.push(`/tasks/${newTask.id}`);
+    router.push(`/dashboard/tasks/${newTask.id}`);
   };
 
   const getCurrentTypeInfo = () => {

@@ -89,7 +89,7 @@ export default function DashboardPage() {
             renderItem={(task) => (
               <List.Item
                 actions={[
-                  <Link key="view" href={`/tasks/${task.id}`}>
+                  <Link key="view" href={`/dashboard/tasks/${task.id}`}>
                     <Button type="link" icon={<EyeOutlined />}>
                       查看
                     </Button>

@@ -84,7 +84,7 @@ export default function TasksPage() {
       width: 150,
       render: (_: any, record: any) => (
         <Space>
-          <Link href={`/tasks/${record.id}`}>
+          <Link href={`/dashboard/tasks/${record.id}`}>
             <Button type="link" size="small" icon={<EyeOutlined />}>
               查看
             </Button>
