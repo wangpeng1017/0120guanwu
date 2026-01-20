@@ -130,6 +130,7 @@ export function MaterialUpload({ taskId }: MaterialUploadProps) {
                   className="bg-gray-50 rounded-lg px-4"
                   actions={[
                     <Button
+                      key="preview"
                       type="link"
                       size="small"
                       icon={<EyeOutlined />}
@@ -138,6 +139,7 @@ export function MaterialUpload({ taskId }: MaterialUploadProps) {
                       预览
                     </Button>,
                     <Button
+                      key="delete"
                       type="link"
                       size="small"
                       danger

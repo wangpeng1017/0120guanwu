@@ -104,6 +104,7 @@ export function DownloadPanel({ taskId }: DownloadPanelProps) {
                 className="bg-gray-50 rounded-lg px-4"
                 actions={[
                   <Button
+                    key="download"
                     type="link"
                     size="small"
                     icon={<DownloadOutlined />}
@@ -139,8 +140,8 @@ export function DownloadPanel({ taskId }: DownloadPanelProps) {
 
       <Card title="下载说明" size="small">
         <div className="text-sm text-gray-600 space-y-2">
-          <p>• 单个文件下载：点击文件右侧的"下载"按钮</p>
-          <p>• 批量下载：点击"批量下载"按钮，所有文件将打包为 ZIP</p>
+          <p>• 单个文件下载：点击文件右侧的&ldquo;下载&rdquo;按钮</p>
+          <p>• 批量下载：点击&ldquo;批量下载&rdquo;按钮，所有文件将打包为 ZIP</p>
           <p>• 文件重命名规则：文件类型_预录入编号.扩展名</p>
           <p>• 示例：提单_ED2025011900001.pdf</p>
         </div>
