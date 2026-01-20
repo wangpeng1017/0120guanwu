@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, Radio, Space, Button, Typography, Divider } from 'antd';
 import { BUSINESS_TYPES } from '@/lib/constants';
 import { useTaskStore } from '@/lib/store';
@@ -23,6 +23,11 @@ export function BusinessTypeSelector({ direction }: BusinessTypeSelectorProps) {
   const availableTypes = Object.entries(BUSINESS_TYPES)
     .filter(([key, value]) => value.direction === direction)
     .map(([key, value]) => ({ key, ...value }));
+
+  // 初始化时设置默认选中的业务类型
+  useEffect(() => {
+    updateSelectedType(selectedLevel, selectedMode);
+  }, [direction]);
 
   const handleLevelChange = (e: any) => {
     setSelectedLevel(e.target.value);
