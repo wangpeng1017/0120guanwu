@@ -51,7 +51,7 @@ export function BusinessTypeSelector({ direction }: BusinessTypeSelectorProps) {
     const typeInfo = BUSINESS_TYPES[selectedType as keyof typeof BUSINESS_TYPES];
     const newTask = addTask({
       businessType: selectedType,
-      businessName: typeInfo.name,
+      businessName: typeInfo.name as string,
       status: 'pending',
       materials: [],
     });
