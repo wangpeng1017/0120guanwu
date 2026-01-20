@@ -16,7 +16,11 @@ declare global {
 const prisma = global.prisma || new PrismaClient({
   log: process.env.NODE_ENV === 'development' ? ['query', 'error', 'warn'] : ['error'],
   // For serverless environments (Next.js API routes)
-  datasourceUrl: process.env.DATABASE_URL,
+  datasources: {
+    db: {
+      url: process.env.DATABASE_URL,
+    },
+  } as any,
 });
 
 if (process.env.NODE_ENV !== 'production') {
