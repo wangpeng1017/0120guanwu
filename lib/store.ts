@@ -4,7 +4,7 @@ import { Task, TaskStatus, DeclarationData, Material } from '@/types';
 interface TaskStore {
   tasks: Task[];
   currentTask: Task | null;
-  addTask: (task: Omit<Task, 'id' | 'taskNo' | 'createdAt' | 'updatedAt'>) => Task;
+  addTask: (task: Omit<Task, 'id' | 'taskNo' | 'preEntryNo' | 'createdAt' | 'updatedAt'>) => Task;
   updateTask: (id: string, data: Partial<Task>) => void;
   deleteTask: (id: string) => void;
   setCurrentTask: (task: Task | null) => void;
