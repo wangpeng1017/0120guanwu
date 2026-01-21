@@ -92,8 +92,11 @@ async function callGemini(prompt: string): Promise<string> {
       return data.candidates[0].content.parts[0].text;
 
     } catch (error: any) {
+      // 详细错误日志
+      console.log(`[Gemini] 模型 ${model} 捕获异常:`, error.message, error.cause || '');
+
       // 网络错误等，尝试下一个模型
-      if (error.message.includes('fetch failed') || error.message.includes('ECONNREFUSED')) {
+      if (error.message.includes('fetch failed') || error.message.includes('ECONNREFUSED') || error.cause?.code === 'ECONNREFUSED') {
         console.log(`[Gemini] 模型 ${model} 网络错误，切换下一个...`);
         errors.push({ model, error: '网络错误' });
         continue;
