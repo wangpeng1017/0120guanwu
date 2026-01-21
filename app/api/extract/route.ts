@@ -82,6 +82,12 @@ export async function POST(request: NextRequest) {
       })
     );
 
+    // 调试日志
+    console.log('[AI提取] 材料数量:', materialsData.length);
+    materialsData.forEach((m, i) => {
+      console.log(`[AI提取] 材料 ${i + 1}: ${m.originalName}, 内容长度: ${m.content?.length || 0}`);
+    });
+
     // 执行 AI 提取
     const extracted = await extractDeclaration(materialsData);
 

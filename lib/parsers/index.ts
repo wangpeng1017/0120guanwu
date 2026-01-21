@@ -39,10 +39,13 @@ async function extractTextFromPDF(buffer: Buffer): Promise<string> {
           });
         }
       });
-      return textItems.join(' ');
+      const result = textItems.join(' ');
+      console.log(`[PDF解析] 成功提取文本，长度: ${result.length}, 前100字符: ${result.substring(0, 100)}`);
+      return result;
     }
 
     // 如果 pdf2json 失败，返回基本信息
+    console.log(`[PDF解析] formPages 为空，返回基本信息`);
     return `[PDF 文件 - ${buffer.length} bytes - 文本内容为空或无法解析]`;
   } catch (error: any) {
     console.error('PDF 解析错误:', error.message);
