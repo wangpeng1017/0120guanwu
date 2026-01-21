@@ -73,9 +73,8 @@ async function callGemini(prompt: string): Promise<string> {
         }
       );
 
-      const responseText = await response.text();
-
       if (!response.ok) {
+        const responseText = await response.text();
         // 检查是否是配额错误
         if (isQuotaError(response.status, responseText)) {
           console.log(`[Gemini] 模型 ${model} 配额不足，切换下一个...`);
