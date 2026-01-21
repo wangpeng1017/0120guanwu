@@ -8,19 +8,25 @@ import { ProxyAgent, fetch as undiciFetch } from 'undici';
 
 /**
  * Gemini 模型列表（按优先级排序）
+ * 使用 API 返回的可用模型名称
  * 当配额不足时自动切换到下一个模型
  */
 const GEMINI_MODELS = [
-  'gemini-2.0-flash-exp',      // 最新探索版
-  'gemini-2.0-flash-thinking-exp',  // 思维探索版
-  'gemini-2.5-pro-exp',        // 2.5 Pro 探索版
-  'gemini-2.5-flash-exp',      // 2.5 Flash 探索版
-  'gemini-2.0-flash',          // 2.0 Flash 稳定版
-  'gemini-2.0-flash-lite',     // 2.0 Flash Lite
-  'gemini-1.5-flash',          // 1.5 Flash 稳定版
-  'gemini-1.5-flash-8b',       // 1.5 Flash 8B
-  'gemini-1.5-pro',            // 1.5 Pro 稳定版
-  'gemini-1.5-pro-002',        // 1.5 Pro 002
+  'gemini-2.5-flash',              // 最新 2.5 Flash
+  'gemini-2.5-pro',                // 最新 2.5 Pro
+  'gemini-3-flash-preview',        // 3.0 Flash 预览版
+  'gemini-3-pro-preview',          // 3.0 Pro 预览版
+  'gemini-2.5-flash-lite',         // 2.5 Flash Lite
+  'gemini-2.5-flash-preview-09-2025',  // 2.5 Flash 预览
+  'gemini-2.0-flash-001',          // 2.0 Flash 001
+  'gemini-2.0-flash-lite-001',     // 2.0 Flash Lite 001
+  'gemini-flash-latest',           // Flash 最新版
+  'gemini-flash-lite-latest',      // Flash Lite 最新版
+  'gemini-pro-latest',             // Pro 最新版
+  'gemini-exp-1206',               // 实验版 1206
+  'gemini-2.0-flash',              // 2.0 Flash 稳定版
+  'gemini-2.0-flash-lite',         // 2.0 Flash Lite
+  'gemini-2.0-flash-exp',          // 2.0 Flash 实验版
 ] as const;
 
 /** 是否为配额错误 */
@@ -30,6 +36,7 @@ function isQuotaError(statusCode: number, errorText: string): boolean {
   if (errorText.includes('quota exceeded')) return true;
   if (errorText.includes('quotaLimitExceeded')) return true;
   if (errorText.includes('QUOTA_EXCEEDED')) return true;
+  if (errorText.includes('limit: 0')) return true;
   return false;
 }
 
