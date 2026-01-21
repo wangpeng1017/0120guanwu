@@ -37,8 +37,8 @@ function toFileType(type: string): FileType {
 }
 
 export function MaterialUpload({ taskId }: MaterialUploadProps) {
-  const { tasks, updateTask } = useTaskStore();
-  const task = tasks.find((t) => t.id === taskId);
+  const { currentTask, setCurrentTask, updateTask } = useTaskStore();
+  const task = currentTask?.id === taskId ? currentTask : null;
   const [previewVisible, setPreviewVisible] = useState(false);
   const [previewFile, setPreviewFile] = useState<{ url: string; type: string } | null>(null);
 
@@ -81,6 +81,7 @@ export function MaterialUpload({ taskId }: MaterialUploadProps) {
 
         if (taskData.success) {
           console.log('[上传] 更新 store, materials:', taskData.task?.materials);
+          setCurrentTask(taskData.task);
           updateTask(taskId, taskData.task);
         }
 
@@ -112,6 +113,7 @@ export function MaterialUpload({ taskId }: MaterialUploadProps) {
 
         if (taskData.success) {
           console.log('[上传] 更新 store, materials:', taskData.task?.materials);
+          setCurrentTask(taskData.task);
           updateTask(taskId, taskData.task);
         }
 
