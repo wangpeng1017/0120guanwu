@@ -10,9 +10,10 @@ import { getOSSClient } from '@/lib/oss';
 
 // 简单的 PDF 文本提取（不依赖复杂 worker）
 async function extractTextFromPDF(buffer: Buffer): Promise<string> {
-  // 使用 pdf-parse 但禁用 worker
-  const { PDFParse } = await import('pdf-parse');
-  const data = await new PDFParse(buffer).getText();
+  // 使用 pdf-parse - 需要 Uint8Array 而不是 Buffer
+  const { default: pdfParse } = await import('pdf-parse');
+  const uint8Array = new Uint8Array(buffer);
+  const data = await pdfParse(uint8Array);
   return data.text;
 }
 
@@ -167,7 +168,8 @@ export async function parseFromLocalPath(
   // 尝试多个可能的路径
   const possiblePaths = [
     filePath, // 原始路径
-    `/root/guanwu-uploads${filePath}`, // 持久化目录
+    `/root/guanwu-uploads${filePath}`, // 持久化目录（带 /uploads 前缀）
+    `/root/guanwu-uploads${filePath.replace('/uploads/', '/')}`, // 持久化目录（去掉 /uploads 前缀）
     `/root/guanwu-system/.next/standalone/guanwu-system/public${filePath}`, // standalone 目录
     `/root/guanwu-system/public${filePath}`, // 源码目录
     `${process.cwd()}/public${filePath}`, // 当前工作目录
