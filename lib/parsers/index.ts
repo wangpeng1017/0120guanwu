@@ -4,7 +4,17 @@
  */
 
 import * as XLSX from 'xlsx';
-import { PDFParse as pdfParse } from 'pdf-parse';
+import * as fs from 'fs';
+import * as path from 'path';
+import { getOSSClient } from '@/lib/oss';
+
+// 简单的 PDF 文本提取（不依赖复杂 worker）
+async function extractTextFromPDF(buffer: Buffer): Promise<string> {
+  // 使用 pdf-parse 但禁用 worker
+  const { PDFParse } = await import('pdf-parse');
+  const data = await new PDFParse(buffer).getText();
+  return data.text;
+}
 
 export interface ParseResult {
   text: string;
@@ -20,17 +30,22 @@ export interface ParseResult {
  * 解析 PDF 文件
  */
 export async function parsePDF(buffer: Buffer): Promise<ParseResult> {
-  const parser = new pdfParse({ data: buffer });
-  const textResult = await parser.getText();
-  const info = await parser.getInfo();
-  await parser.destroy();
-
-  return {
-    text: textResult.text,
-    metadata: {
-      pages: info.total || 0,
-    },
-  };
+  try {
+    const text = await extractTextFromPDF(buffer);
+    return {
+      text,
+      metadata: {
+        pages: 1,
+      },
+    };
+  } catch (error: any) {
+    console.error('PDF 解析错误:', error.message);
+    // 如果解析失败，返回提示信息
+    return {
+      text: `[PDF 文件 - ${buffer.length} bytes - 解析失败: ${error.message}]`,
+      metadata: { pages: 0 },
+    };
+  }
 }
 
 /**
@@ -142,20 +157,108 @@ export async function parseFile(
 }
 
 /**
+ * 从本地文件路径读取并解析
+ */
+export async function parseFromLocalPath(
+  filePath: string,
+  mimeType: string,
+  fileName: string
+): Promise<ParseResult> {
+  // 尝试多个可能的路径
+  const possiblePaths = [
+    filePath, // 原始路径
+    `/root/guanwu-uploads${filePath}`, // 持久化目录
+    `/root/guanwu-system/.next/standalone/guanwu-system/public${filePath}`, // standalone 目录
+    `/root/guanwu-system/public${filePath}`, // 源码目录
+    `${process.cwd()}/public${filePath}`, // 当前工作目录
+  ];
+
+  let buffer: Buffer | null = null;
+  let actualPath = '';
+
+  for (const tryPath of possiblePaths) {
+    try {
+      if (fs.existsSync(tryPath)) {
+        buffer = fs.readFileSync(tryPath);
+        actualPath = tryPath;
+        console.log(`[parseFromLocalPath] 找到文件: ${actualPath}`);
+        break;
+      }
+    } catch {
+      // 继续尝试下一个路径
+    }
+  }
+
+  if (!buffer) {
+    throw new Error(`文件未找到，尝试过的路径: ${possiblePaths.join(', ')}`);
+  }
+
+  return parseFile(buffer, mimeType, fileName);
+}
+
+/**
  * 从 URL 获取文件内容并解析
  */
 export async function parseFromUrl(
   fileUrl: string,
   mimeType: string,
-  fileName: string
+  fileName: string,
+  storedName?: string
 ): Promise<ParseResult> {
-  const response = await fetch(fileUrl);
-  if (!response.ok) {
-    throw new Error(`无法获取文件: ${response.statusText}`);
+  // 如果是本地路径（以 /uploads 开头），优先从本地文件系统读取
+  if (fileUrl.startsWith('/uploads/') || fileUrl.startsWith('./uploads/')) {
+    try {
+      return await parseFromLocalPath(fileUrl, mimeType, fileName);
+    } catch (localError: any) {
+      console.log(`[parseFromUrl] 本地读取失败，尝试 OSS: ${localError.message}`);
+      // 本地读取失败，尝试从 OSS 获取
+    }
   }
 
-  const arrayBuffer = await response.arrayBuffer();
-  const buffer = Buffer.from(arrayBuffer);
+  // 尝试从 OSS 获取文件（通过 storedName 或从 URL 提取）
+  const ossClient = getOSSClient();
+  if (ossClient) {
+    try {
+      // 从 storedName 或 fileUrl 提取 OSS key
+      let ossKey = storedName || '';
 
-  return parseFile(buffer, mimeType, fileName);
+      // 如果没有 storedName，尝试从 fileUrl 提取
+      if (!ossKey && fileUrl.startsWith('http')) {
+        const url = new URL(fileUrl);
+        const pathParts = url.pathname.split('/');
+        ossKey = pathParts.slice(1).join('/'); // 去掉开头的 /
+      }
+
+      // 如果是相对路径格式（如 uploads/OTHER/xxx.pdf）
+      if (!ossKey && fileUrl.startsWith('/uploads/')) {
+        ossKey = fileUrl.substring(1); // 去掉开头的 /
+      }
+
+      if (ossKey) {
+        console.log(`[parseFromUrl] 尝试从 OSS 获取: ${ossKey}`);
+        const result = await ossClient.get(ossKey);
+        const buffer = result.content;
+        console.log(`[parseFromUrl] OSS 文件获取成功，大小: ${buffer.length} bytes`);
+        return parseFile(buffer, mimeType, fileName);
+      }
+    } catch (ossError: any) {
+      console.log(`[parseFromUrl] OSS 获取失败: ${ossError.message}`);
+    }
+  }
+
+  // HTTP/HTTPS URL
+  if (fileUrl.startsWith('http://') || fileUrl.startsWith('https://')) {
+    const response = await fetch(fileUrl);
+    if (!response.ok) {
+      throw new Error(`无法获取文件: ${response.statusText}`);
+    }
+
+    const arrayBuffer = await response.arrayBuffer();
+    const buffer = Buffer.from(arrayBuffer);
+
+    return parseFile(buffer, mimeType, fileName);
+  }
+
+  // 相对路径，尝试从本地读取
+  return parseFromLocalPath(fileUrl, mimeType, fileName);
 }

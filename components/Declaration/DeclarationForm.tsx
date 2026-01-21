@@ -21,6 +21,7 @@ import { Task, DeclarationItem, DeclarationHeader } from '@/types';
 
 interface DeclarationFormProps {
   task: Task;
+  onTaskUpdated?: () => void;
 }
 
 // 默认空商品项
@@ -40,7 +41,7 @@ const emptyItem: DeclarationItem = {
   notes: '',
 };
 
-export function DeclarationForm({ task }: DeclarationFormProps) {
+export function DeclarationForm({ task, onTaskUpdated }: DeclarationFormProps) {
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(false);
   const [extracting, setExtracting] = useState(false);
@@ -112,7 +113,7 @@ export function DeclarationForm({ task }: DeclarationFormProps) {
     }
   }, [task]);
 
-  // AI 提取
+  // AI 提取 - 直接更新本地状态，不需要刷新页面
   const handleAIExtract = async () => {
     setExtracting(true);
     try {
@@ -126,8 +127,70 @@ export function DeclarationForm({ task }: DeclarationFormProps) {
 
       if (result.success) {
         message.success('AI 提取成功！请检查并补充信息');
-        // 刷新页面数据
-        window.location.reload();
+
+        // 直接更新本地状态，填充提取的数据
+        if (result.extracted) {
+          const { header, items } = result.extracted;
+
+          // 转换表头数据
+          const headerValues: DeclarationHeader = {
+            preEntryNo: header?.preEntryNo?.value || '',
+            customsNo: header?.customsNo?.value || '',
+            domesticConsignee: header?.domesticConsignee?.value || '',
+            overseasConsignee: header?.overseasConsignee?.value || '',
+            declarant: header?.declarant?.value || '',
+            transportMode: header?.transportMode?.value || '',
+            vesselName: header?.vesselName?.value || '',
+            voyageNo: header?.voyageNo?.value || '',
+            billNo: header?.billNo?.value || '',
+            tradeCountry: header?.tradeCountry?.value || '',
+            portOfLoading: header?.portOfLoading?.value || '',
+            portOfDischarge: header?.portOfDischarge?.value || '',
+            portOfEntry: header?.portOfEntry?.value || '',
+            destinationCountry: header?.destinationCountry?.value || '',
+            tradeMode: header?.tradeMode?.value || '',
+            taxMode: header?.taxMode?.value || '',
+            natureOfTax: header?.natureOfTax?.value || '',
+            grossWeight: header?.grossWeight?.value || 0,
+            netWeight: header?.netWeight?.value || 0,
+            packageCount: header?.packageCount?.value || 0,
+            packageType: header?.packageType?.value || '',
+            containerNo: header?.containerNo?.value || '',
+            tradeCurrency: header?.tradeCurrency?.value || '',
+            totalPrice: header?.totalPrice?.value || 0,
+            invoiceNo: header?.invoiceNo?.value || '',
+            invoiceDate: header?.invoiceDate?.value || '',
+            contractNo: header?.contractNo?.value || '',
+            notes: header?.notes?.value || '',
+          };
+
+          // 转换商品明细
+          const transformedItems: DeclarationItem[] = items.map((item: any) => ({
+            itemNo: item.itemNo?.value || 0,
+            goodsName: item.goodsName?.value || '',
+            specs: item.specs?.value || '',
+            hsCode: item.hsCode?.value || '',
+            quantity: item.quantity?.value || 0,
+            unit: item.unit?.value || '',
+            unitPrice: item.unitPrice?.value || 0,
+            totalPrice: item.totalPrice?.value || 0,
+            currency: item.currency?.value || '',
+            countryOfOrigin: item.countryOfOrigin?.value || '',
+            dutyRate: item.dutyRate?.value || 0,
+            vatRate: item.vatRate?.value || 0,
+            notes: item.notes?.value || '',
+          }));
+
+          // 更新表单
+          form.setFieldsValue(headerValues);
+          setItems(transformedItems);
+          setDeclarationData({ header: headerValues, items: transformedItems });
+        }
+
+        // 通知父组件刷新任务数据（如果需要）
+        if (onTaskUpdated) {
+          onTaskUpdated();
+        }
       } else {
         message.error(result.error || 'AI 提取失败');
       }
@@ -369,21 +432,22 @@ export function DeclarationForm({ task }: DeclarationFormProps) {
     },
   ];
 
+  const hasDeclarations = task.declarations && task.declarations.length > 0;
+  const canExtract = !hasDeclarations || (hasDeclarations && task.declarations[0]?.confidenceScore === 0);
+
   return (
     <div>
       <div className="flex justify-between items-center mb-4">
         <h3 className="text-base font-medium">申报要素编辑</h3>
         <Space>
-          {task.declarations.length === 0 && (
-            <Button
-              type="primary"
-              icon={<CheckOutlined />}
-              onClick={handleAIExtract}
-              loading={extracting}
-            >
-              AI 智能提取
-            </Button>
-          )}
+          <Button
+            type={canExtract ? "primary" : "default"}
+            icon={<CheckOutlined />}
+            onClick={handleAIExtract}
+            loading={extracting}
+          >
+            {hasDeclarations ? '重新 AI 提取' : 'AI 智能提取'}
+          </Button>
           <Button icon={<SaveOutlined />} onClick={handleSave}>
             保存草稿
           </Button>

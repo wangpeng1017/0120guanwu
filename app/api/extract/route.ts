@@ -59,12 +59,7 @@ export async function POST(request: NextRequest) {
         } else {
           // 否则解析文件
           try {
-            // 构建完整文件 URL
-            const fullUrl = m.fileUrl.startsWith('http')
-              ? m.fileUrl
-              : `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}${m.fileUrl}`;
-
-            const parseResult = await parseFromUrl(fullUrl, m.mimeType, m.originalName);
+            const parseResult = await parseFromUrl(m.fileUrl, m.mimeType, m.originalName, m.storedName);
             content = parseResult.text;
 
             // 保存解析结果到数据库，避免重复解析
