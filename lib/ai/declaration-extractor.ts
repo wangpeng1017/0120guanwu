@@ -1,12 +1,40 @@
 /**
  * Gemini 智能提取服务
  * 用于从报关材料中提取申报要素
+ * 支持多模型自动切换（配额不足时切换到下一个模型）
  */
 
 import { ProxyAgent, fetch as undiciFetch } from 'undici';
 
 /**
- * 调用 Gemini API（通过代理）
+ * Gemini 模型列表（按优先级排序）
+ * 当配额不足时自动切换到下一个模型
+ */
+const GEMINI_MODELS = [
+  'gemini-2.0-flash-exp',      // 最新探索版
+  'gemini-2.0-flash-thinking-exp',  // 思维探索版
+  'gemini-2.5-pro-exp',        // 2.5 Pro 探索版
+  'gemini-2.5-flash-exp',      // 2.5 Flash 探索版
+  'gemini-2.0-flash',          // 2.0 Flash 稳定版
+  'gemini-2.0-flash-lite',     // 2.0 Flash Lite
+  'gemini-1.5-flash',          // 1.5 Flash 稳定版
+  'gemini-1.5-flash-8b',       // 1.5 Flash 8B
+  'gemini-1.5-pro',            // 1.5 Pro 稳定版
+  'gemini-1.5-pro-002',        // 1.5 Pro 002
+] as const;
+
+/** 是否为配额错误 */
+function isQuotaError(statusCode: number, errorText: string): boolean {
+  if (statusCode === 429) return true;
+  if (errorText.includes('RESOURCE_EXHAUSTED')) return true;
+  if (errorText.includes('quota exceeded')) return true;
+  if (errorText.includes('quotaLimitExceeded')) return true;
+  if (errorText.includes('QUOTA_EXCEEDED')) return true;
+  return false;
+}
+
+/**
+ * 调用 Gemini API（通过代理，支持多模型自动切换）
  */
 async function callGemini(prompt: string): Promise<string> {
   const apiKey = process.env.GEMINI_API_KEY;
@@ -18,26 +46,60 @@ async function callGemini(prompt: string): Promise<string> {
   const proxyUrl = process.env.PROXY_URL || 'http://127.0.0.1:7890';
   const dispatcher = new ProxyAgent(proxyUrl);
 
-  const response = await undiciFetch(
-    `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`,
-    {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        contents: [{ parts: [{ text: prompt }] }],
-        generationConfig: { temperature: 0.3 },
-      }),
-      dispatcher,
-    }
-  );
+  // 遍历所有模型，直到成功或全部失败
+  const errors: Array<{ model: string; error: string }> = [];
 
-  if (!response.ok) {
-    const error = await response.text();
-    throw new Error(`Gemini API 错误: ${response.status} - ${error}`);
+  for (const model of GEMINI_MODELS) {
+    try {
+      console.log(`[Gemini] 尝试使用模型: ${model}`);
+
+      const response = await undiciFetch(
+        `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            contents: [{ parts: [{ text: prompt }] }],
+            generationConfig: { temperature: 0.3 },
+          }),
+          dispatcher,
+        }
+      );
+
+      const responseText = await response.text();
+
+      if (!response.ok) {
+        // 检查是否是配额错误
+        if (isQuotaError(response.status, responseText)) {
+          console.log(`[Gemini] 模型 ${model} 配额不足，切换下一个...`);
+          errors.push({ model, error: `配额不足 (${response.status})` });
+          continue; // 尝试下一个模型
+        }
+        // 其他错误直接抛出
+        throw new Error(`Gemini API 错误 (${model}): ${response.status} - ${responseText}`);
+      }
+
+      const data = await response.json() as any;
+      console.log(`[Gemini] 模型 ${model} 调用成功`);
+      return data.candidates[0].content.parts[0].text;
+
+    } catch (error: any) {
+      // 网络错误等，尝试下一个模型
+      if (error.message.includes('fetch failed') || error.message.includes('ECONNREFUSED')) {
+        console.log(`[Gemini] 模型 ${model} 网络错误，切换下一个...`);
+        errors.push({ model, error: '网络错误' });
+        continue;
+      }
+      // 其他错误也尝试下一个
+      errors.push({ model, error: error.message });
+      console.log(`[Gemini] 模型 ${model} 失败: ${error.message}，切换下一个...`);
+    }
   }
 
-  const data = await response.json() as any;
-  return data.candidates[0].content.parts[0].text;
+  // 所有模型都失败了
+  throw new Error(
+    `所有 Gemini 模型都失败:\n${errors.map(e => `  - ${e.model}: ${e.error}`).join('\n')}`
+  );
 }
 
 /**
@@ -208,4 +270,11 @@ export function calculateOverallConfidence(
 
   const sum = allConfidences.reduce((a, b) => a + b, 0);
   return sum / allConfidences.length;
+}
+
+/**
+ * 获取当前可用模型列表
+ */
+export function getAvailableModels(): readonly string[] {
+  return GEMINI_MODELS;
 }
