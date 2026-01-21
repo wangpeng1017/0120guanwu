@@ -1,70 +1,41 @@
 /**
- * GLM-4.7 智能提取服务
+ * Gemini 智能提取服务
  * 用于从报关材料中提取申报要素
- *
- * API 文档: https://docs.bigmodel.cn/cn/guide/models/text/glm-4.7
  */
-
-interface GLMMessage {
-  role: 'user' | 'assistant';
-  content: string;
-}
-
-interface GLMResponse {
-  choices: Array<{
-    message: {
-      content: string;
-      role: string;
-    };
-    finish_reason: string;
-  }>;
-  usage: {
-    prompt_tokens: number;
-    completion_tokens: number;
-    total_tokens: number;
-  };
-}
 
 /**
- * 调用 GLM-4.7 API
+ * 调用 Gemini API
  */
-async function callGLM47(messages: GLMMessage[]): Promise<string> {
-  const apiKey = process.env.ZHIPUAI_API_KEY;
+async function callGemini(prompt: string): Promise<string> {
+  const apiKey = process.env.GEMINI_API_KEY;
 
   if (!apiKey) {
-    throw new Error('未配置 ZHIPUAI_API_KEY 环境变量');
+    throw new Error('未配置 GEMINI_API_KEY 环境变量');
   }
 
-  const response = await fetch('https://open.bigmodel.cn/api/paas/v4/chat/completions', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${apiKey}`,
-    },
-    body: JSON.stringify({
-      model: 'glm-4.7',
-      messages,
-      thinking: { type: 'enabled' }, // 启用思考模式，提升复杂任务准确度
-      max_tokens: 65536,
-      temperature: 0.3, // 较低温度保证提取的稳定性
-      top_p: 0.9,
-    }),
-  });
+  const response = await fetch(
+    `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`,
+    {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        contents: [{ parts: [{ text: prompt }] }],
+        generationConfig: { temperature: 0.3 },
+      }),
+    }
+  );
 
   if (!response.ok) {
     const error = await response.text();
-    throw new Error(`GLM-4.7 API 错误: ${response.status} - ${error}`);
+    throw new Error(`Gemini API 错误: ${response.status} - ${error}`);
   }
 
-  const data: GLMResponse = await response.json();
-  return data.choices[0].message.content;
+  const data = await response.json();
+  return data.candidates[0].content.parts[0].text;
 }
 
 /**
  * 提取报关申报要素
- *
- * @param materials - 材料文件列表
- * @returns 提取的申报数据
  */
 export async function extractDeclaration(
   materials: Array<{
@@ -82,18 +53,8 @@ export async function extractDeclaration(
     throw new Error('没有可提取的材料');
   }
 
-  // 构建提示词
   const prompt = buildExtractionPrompt(materials);
-
-  // 调用 GLM-4.7 API
-  const responseText = await callGLM47([
-    {
-      role: 'user',
-      content: prompt,
-    },
-  ]);
-
-  // 解析返回的 JSON
+  const responseText = await callGemini(prompt);
   return parseAIResponse(responseText);
 }
 
@@ -108,7 +69,6 @@ function buildExtractionPrompt(
     content?: string;
   }>
 ): string {
-  // 文件类型中文映射
   const fileTypeLabels: Record<string, string> = {
     BILL_OF_LADING: '提单',
     INVOICE: '发票',
@@ -196,10 +156,8 @@ function parseAIResponse(responseText: string): {
   items: Array<Record<string, { value: string | number; confidence: number; source: string }>>;
   overallConfidence: number;
 } {
-  // 尝试提取 JSON 内容
   let jsonStr = responseText.trim();
 
-  // 移除可能的代码块标记
   if (jsonStr.startsWith('```json')) {
     jsonStr = jsonStr.slice(7);
   } else if (jsonStr.startsWith('```')) {
@@ -209,7 +167,6 @@ function parseAIResponse(responseText: string): {
     jsonStr = jsonStr.slice(0, -3);
   }
 
-  // 查找第一个 { 和最后一个 }
   const firstBrace = jsonStr.indexOf('{');
   const lastBrace = jsonStr.lastIndexOf('}');
 
@@ -220,9 +177,8 @@ function parseAIResponse(responseText: string): {
   jsonStr = jsonStr.substring(firstBrace, lastBrace + 1);
 
   try {
-    const result = JSON.parse(jsonStr);
-    return result;
-  } catch (error) {
+    return JSON.parse(jsonStr);
+  } catch {
     console.error('解析 AI 返回的 JSON 失败:', jsonStr);
     throw new Error('解析 AI 返回数据失败');
   }
