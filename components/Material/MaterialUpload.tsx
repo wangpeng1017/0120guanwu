@@ -44,13 +44,17 @@ export function MaterialUpload({ taskId }: MaterialUploadProps) {
 
   const handleUpload = useCallback(
     async (file: File) => {
+      console.log('[上传] 开始上传文件:', file.name, file.size, file.type);
+      
       const validation = validateFile(file);
+      console.log('[上传] 验证结果:', validation);
       if (!validation.valid) {
         message.error(validation.error);
         return false;
       }
 
       try {
+        console.log('[上传] 准备发送请求, taskId:', taskId);
         // 上传到服务器
         const formData = new FormData();
         formData.append('file', file);
@@ -62,6 +66,7 @@ export function MaterialUpload({ taskId }: MaterialUploadProps) {
         });
 
         const result = await response.json();
+        console.log('[上传] 服务器响应:', result);
 
         if (!result.success) {
           message.error(result.error || '上传失败');
