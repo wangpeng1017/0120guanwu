@@ -11,6 +11,7 @@ import {
   Space,
   Empty,
   Spin,
+  message,
 } from 'antd';
 import {
   ArrowLeftOutlined,
@@ -41,20 +42,47 @@ export default function TaskDetailPage() {
   const { tasks, updateTask, setCurrentTask } = useTaskStore();
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('materials');
-
-  const task = tasks.find((t) => t.id === params.id);
+  const [task, setTask] = useState<any | null>(null);
 
   useEffect(() => {
-    if (task) {
-      setCurrentTask(task);
-      setLoading(false);
-    } else {
-      const timer = setTimeout(() => {
+    const fetchTask = async () => {
+      const taskId = params.id;
+      if (!taskId) return;
+
+      // 先从本地 store 查找
+      const localTask = tasks.find((t) => t.id === taskId);
+      if (localTask) {
+        setTask(localTask);
+        setCurrentTask(localTask);
         setLoading(false);
-      }, 500);
-      return () => clearTimeout(timer);
-    }
-  }, [task, setCurrentTask]);
+        return;
+      }
+
+      // 本地没有，从 API 获取
+      try {
+        const response = await fetch(`/api/tasks/${taskId}`);
+        if (!response.ok) {
+          throw new Error('获取任务失败');
+        }
+        const result = await response.json();
+        if (result.success && result.task) {
+          setTask(result.task);
+          setCurrentTask(result.task);
+          // 更新本地 store
+          updateTask(result.task);
+        } else {
+          message.error(result.error || '任务不存在');
+        }
+      } catch (error) {
+        console.error('获取任务失败:', error);
+        message.error('获取任务失败，请重试');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchTask();
+  }, [params.id, tasks, setCurrentTask, updateTask]);
 
   if (loading) {
     return (
@@ -131,7 +159,7 @@ export default function TaskDetailPage() {
           <Descriptions.Item label="创建时间">{formatDate(task.createdAt)}</Descriptions.Item>
           <Descriptions.Item label="更新时间">{formatDate(task.updatedAt)}</Descriptions.Item>
           <Descriptions.Item label="材料数量" span={3}>
-            {task.materials.length} 个文件
+            {task.materials?.length || 0} 个文件
           </Descriptions.Item>
         </Descriptions>
       </Card>

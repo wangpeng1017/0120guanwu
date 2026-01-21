@@ -13,20 +13,9 @@ declare global {
 
 // 创建 Prisma 客户端实例
 // 在开发环境中使用全局变量避免热重载时创建多个实例
-const prismaClientOptions: {
-  log?: Array<'query' | 'error' | 'warn'>;
-  datasources?: { db: { url: string } };
-} = {
+const prisma = global.prisma || new PrismaClient({
   log: process.env.NODE_ENV === 'development' ? ['query', 'error', 'warn'] : ['error'],
-};
-
-if (process.env.DATABASE_URL) {
-  prismaClientOptions.datasources = {
-    db: { url: process.env.DATABASE_URL },
-  };
-}
-
-const prisma = global.prisma || new PrismaClient(prismaClientOptions as any);
+});
 
 if (process.env.NODE_ENV !== 'production') {
   global.prisma = prisma;
