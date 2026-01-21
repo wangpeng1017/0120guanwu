@@ -11,8 +11,9 @@ import { getOSSClient } from '@/lib/oss';
 // PDF 文本提取（使用 pdf2json - 无 canvas 依赖）
 async function extractTextFromPDF(buffer: Buffer): Promise<string> {
   try {
-    // 使用 require 避免 TypeScript 类型问题
-    const { PDFParser } = require('pdf2json');
+    // 动态导入 pdf2json (ESM 模块)
+    const pdf2jsonModule = await import('pdf2json');
+    const { PDFParser } = pdf2jsonModule;
 
     // 创建解析器实例
     const pdfParser = new PDFParser();
