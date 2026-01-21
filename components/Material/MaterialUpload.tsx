@@ -74,10 +74,13 @@ export function MaterialUpload({ taskId }: MaterialUploadProps) {
         }
 
         // 刷新任务列表
+        console.log('[上传] 开始刷新任务...');
         const tasksResponse = await fetch(`/api/tasks/${taskId}`);
         const taskData = await tasksResponse.json();
+        console.log('[上传] 任务数据:', taskData);
 
         if (taskData.success) {
+          console.log('[上传] 更新 store, materials:', taskData.task?.materials);
           updateTask(taskId, taskData.task);
         }
 
@@ -102,10 +105,13 @@ export function MaterialUpload({ taskId }: MaterialUploadProps) {
 
       if (result.success) {
         // 刷新任务列表
+        console.log('[上传] 开始刷新任务...');
         const tasksResponse = await fetch(`/api/tasks/${taskId}`);
         const taskData = await tasksResponse.json();
+        console.log('[上传] 任务数据:', taskData);
 
         if (taskData.success) {
+          console.log('[上传] 更新 store, materials:', taskData.task?.materials);
           updateTask(taskId, taskData.task);
         }
 
