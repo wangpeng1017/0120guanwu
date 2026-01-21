@@ -3,8 +3,10 @@
  * 用于从报关材料中提取申报要素
  */
 
+import { ProxyAgent, fetch as undiciFetch } from 'undici';
+
 /**
- * 调用 Gemini API
+ * 调用 Gemini API（通过代理）
  */
 async function callGemini(prompt: string): Promise<string> {
   const apiKey = process.env.GEMINI_API_KEY;
@@ -13,7 +15,10 @@ async function callGemini(prompt: string): Promise<string> {
     throw new Error('未配置 GEMINI_API_KEY 环境变量');
   }
 
-  const response = await fetch(
+  const proxyUrl = process.env.PROXY_URL || 'http://127.0.0.1:7890';
+  const dispatcher = new ProxyAgent(proxyUrl);
+
+  const response = await undiciFetch(
     `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`,
     {
       method: 'POST',
@@ -22,6 +27,7 @@ async function callGemini(prompt: string): Promise<string> {
         contents: [{ parts: [{ text: prompt }] }],
         generationConfig: { temperature: 0.3 },
       }),
+      dispatcher,
     }
   );
 
@@ -30,7 +36,7 @@ async function callGemini(prompt: string): Promise<string> {
     throw new Error(`Gemini API 错误: ${response.status} - ${error}`);
   }
 
-  const data = await response.json();
+  const data = await response.json() as any;
   return data.candidates[0].content.parts[0].text;
 }
 
