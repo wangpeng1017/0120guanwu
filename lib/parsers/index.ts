@@ -11,7 +11,8 @@ import { getOSSClient } from '@/lib/oss';
 // 简单的 PDF 文本提取（不依赖复杂 worker）
 async function extractTextFromPDF(buffer: Buffer): Promise<string> {
   // 使用 pdf-parse - 需要 Uint8Array 而不是 Buffer
-  const { default: pdfParse } = await import('pdf-parse');
+  const pdfParseModule: any = await import('pdf-parse');
+  const pdfParse = pdfParseModule.default || pdfParseModule;
   const uint8Array = new Uint8Array(buffer);
   const data = await pdfParse(uint8Array);
   return data.text;

@@ -81,8 +81,10 @@ async function callGemini(prompt: string): Promise<string> {
           errors.push({ model, error: `配额不足 (${response.status})` });
           continue; // 尝试下一个模型
         }
-        // 其他错误直接抛出
-        throw new Error(`Gemini API 错误 (${model}): ${response.status} - ${responseText}`);
+        // 其他 HTTP 错误也尝试下一个模型（不抛出异常）
+        errors.push({ model, error: `API错误 (${response.status})` });
+        console.log(`[Gemini] 模型 ${model} 返回错误 ${response.status}，切换下一个...`);
+        continue;
       }
 
       const data = await response.json() as any;
@@ -94,6 +96,12 @@ async function callGemini(prompt: string): Promise<string> {
       if (error.message.includes('fetch failed') || error.message.includes('ECONNREFUSED')) {
         console.log(`[Gemini] 模型 ${model} 网络错误，切换下一个...`);
         errors.push({ model, error: '网络错误' });
+        continue;
+      }
+      // Body already read 错误也跳过
+      if (error.message.includes('Body has already been read') || error.message.includes('Body is unusable')) {
+        console.log(`[Gemini] 模型 ${model} Body 已被读取，切换下一个...`);
+        errors.push({ model, error: 'Body 已被读取' });
         continue;
       }
       // 其他错误也尝试下一个
