@@ -7,21 +7,23 @@ import * as XLSX from 'xlsx';
 import * as fs from 'fs';
 import * as path from 'path';
 import { getOSSClient } from '@/lib/oss';
-import * as pdfjsLib from 'pdfjs-dist';
 
-// 设置 PDF.js worker 路径
-pdfjsLib.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.js`;
-
-// PDF 文本提取（使用 pdfjs-dist）
+// PDF 文本提取（使用 pdfjs-dist - Node.js 版本）
+// 注意：在服务器端不使用 worker，直接同步解析
 async function extractTextFromPDF(buffer: Buffer): Promise<string> {
   try {
-    const loadingTask = pdfjsLib.getDocument({
-      data: new Uint8Array(buffer),
-      useSystemFonts: true,
-      useWorkerFetch: false,
-    });
+    // 动态导入 pdfjs-dist
+    const pdfjsLib = await import('pdfjs-dist');
 
-    const pdf = await loadingTask.promise;
+    // 在 Node.js 环境中，使用内置的 fake worker
+    const pdf = await pdfjsLib.getDocument({
+      data: new Uint8Array(buffer),
+      useWorkerFetch: false,
+      useSystemFonts: true,
+      // Node.js 环境禁用 worker
+      isEvalSupported: false,
+    }).promise;
+
     let fullText = '';
 
     // 遍历所有页面
