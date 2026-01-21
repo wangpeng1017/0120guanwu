@@ -7,15 +7,38 @@ import * as XLSX from 'xlsx';
 import * as fs from 'fs';
 import * as path from 'path';
 import { getOSSClient } from '@/lib/oss';
+import * as pdfjsLib from 'pdfjs-dist';
 
-// 简单的 PDF 文本提取（不依赖复杂 worker）
+// 设置 PDF.js worker 路径
+pdfjsLib.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.js`;
+
+// PDF 文本提取（使用 pdfjs-dist）
 async function extractTextFromPDF(buffer: Buffer): Promise<string> {
-  // 使用 pdf-parse - 需要 Uint8Array 而不是 Buffer
-  const pdfParseModule: any = await import('pdf-parse');
-  const pdfParse = pdfParseModule.default || pdfParseModule;
-  const uint8Array = new Uint8Array(buffer);
-  const data = await pdfParse(uint8Array);
-  return data.text;
+  try {
+    const loadingTask = pdfjsLib.getDocument({
+      data: new Uint8Array(buffer),
+      useSystemFonts: true,
+      useWorkerFetch: false,
+    });
+
+    const pdf = await loadingTask.promise;
+    let fullText = '';
+
+    // 遍历所有页面
+    for (let i = 1; i <= pdf.numPages; i++) {
+      const page = await pdf.getPage(i);
+      const textContent = await page.getTextContent();
+      const pageText = textContent.items
+        .map((item: any) => item.str)
+        .join(' ');
+      fullText += pageText + '\n';
+    }
+
+    return fullText.trim();
+  } catch (error: any) {
+    console.error('PDF 解析错误:', error.message);
+    throw error;
+  }
 }
 
 export interface ParseResult {
