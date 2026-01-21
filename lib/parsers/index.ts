@@ -8,17 +8,41 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { getOSSClient } from '@/lib/oss';
 
-// PDF 文本提取（使用 pdf-parse 1.1.1 - Node.js 兼容版本）
+// PDF 文本提取（使用 pdf2json - 无 canvas 依赖）
 async function extractTextFromPDF(buffer: Buffer): Promise<string> {
   try {
-    // 动态导入 pdf-parse
-    const pdfParseModule = await import('pdf-parse');
-    // pdf-parse 1.1.1 使用 default 导出
-    const pdfParse = pdfParseModule.default || pdfParseModule;
+    // 使用 require 避免 TypeScript 类型问题
+    const { PDFParser } = require('pdf2json');
 
-    // 直接使用 Buffer（pdf-parse 1.1.1 支持 Buffer）
-    const data = await pdfParse(buffer);
-    return data.text;
+    // 创建解析器实例
+    const pdfParser = new PDFParser();
+
+    // 解析 PDF
+    const data = await new Promise((resolve, reject) => {
+      pdfParser.parseBuffer(buffer, (err: any, data: any) => {
+        if (err) reject(err);
+        else resolve(data);
+      });
+    });
+
+    // 提取文本内容
+    const parsedData = data as any;
+    if (parsedData && parsedData.formPages && parsedData.formPages.length > 0) {
+      const textItems: string[] = [];
+      parsedData.formPages.forEach((page: any) => {
+        if (page.texts) {
+          page.texts.forEach((textItem: any) => {
+            if (textItem.text) {
+              textItems.push(textItem.text);
+            }
+          });
+        }
+      });
+      return textItems.join(' ');
+    }
+
+    // 如果 pdf2json 失败，返回基本信息
+    return `[PDF 文件 - ${buffer.length} bytes - 文本内容为空或无法解析]`;
   } catch (error: any) {
     console.error('PDF 解析错误:', error.message);
     throw error;
