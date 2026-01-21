@@ -1,3 +1,4 @@
+'
 'use client';
 
 import { useEffect, useState } from 'react';
@@ -39,14 +40,14 @@ function getBusinessTypeName(task: any): string {
 export default function TaskDetailPage() {
   const params = useParams();
   const router = useRouter();
-  const { tasks, updateTask, setCurrentTask } = useTaskStore();
+  const { tasks, setCurrentTask } = useTaskStore();
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('materials');
   const [task, setTask] = useState<any | null>(null);
 
   useEffect(() => {
     const fetchTask = async () => {
-      const taskId = params.id;
+      const taskId = params.id as string;
       if (!taskId) return;
 
       // 先从本地 store 查找
@@ -68,8 +69,6 @@ export default function TaskDetailPage() {
         if (result.success && result.task) {
           setTask(result.task);
           setCurrentTask(result.task);
-          // 更新本地 store
-          updateTask(result.task);
         } else {
           message.error(result.error || '任务不存在');
         }
@@ -82,7 +81,7 @@ export default function TaskDetailPage() {
     };
 
     fetchTask();
-  }, [params.id, tasks, setCurrentTask, updateTask]);
+  }, [params.id, tasks, setCurrentTask]);
 
   if (loading) {
     return (
