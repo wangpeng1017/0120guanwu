@@ -8,35 +8,17 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { getOSSClient } from '@/lib/oss';
 
-// PDF 文本提取（使用 pdfjs-dist - Node.js 版本）
-// 注意：在服务器端不使用 worker，直接同步解析
+// PDF 文本提取（使用 pdf-parse 1.1.1 - Node.js 兼容版本）
 async function extractTextFromPDF(buffer: Buffer): Promise<string> {
   try {
-    // 动态导入 pdfjs-dist
-    const pdfjsLib = await import('pdfjs-dist');
+    // 动态导入 pdf-parse
+    const pdfParseModule = await import('pdf-parse');
+    // pdf-parse 1.1.1 使用 default 导出
+    const pdfParse = pdfParseModule.default || pdfParseModule;
 
-    // 在 Node.js 环境中，使用内置的 fake worker
-    const pdf = await pdfjsLib.getDocument({
-      data: new Uint8Array(buffer),
-      useWorkerFetch: false,
-      useSystemFonts: true,
-      // Node.js 环境禁用 worker
-      isEvalSupported: false,
-    }).promise;
-
-    let fullText = '';
-
-    // 遍历所有页面
-    for (let i = 1; i <= pdf.numPages; i++) {
-      const page = await pdf.getPage(i);
-      const textContent = await page.getTextContent();
-      const pageText = textContent.items
-        .map((item: any) => item.str)
-        .join(' ');
-      fullText += pageText + '\n';
-    }
-
-    return fullText.trim();
+    // 直接使用 Buffer（pdf-parse 1.1.1 支持 Buffer）
+    const data = await pdfParse(buffer);
+    return data.text;
   } catch (error: any) {
     console.error('PDF 解析错误:', error.message);
     throw error;
