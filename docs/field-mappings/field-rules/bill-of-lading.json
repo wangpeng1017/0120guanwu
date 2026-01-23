@@ -1,0 +1,105 @@
+{
+  "materialType": "BILL_OF_LADING",
+  "description": "提单字段提取规则",
+  "extractFields": [
+    {
+      "fieldName": "提单号",
+      "jsonPath": "header.billNo",
+      "extractionPrompt": "提取提单号，通常包含B/L、Bill of Lading、No.等字样",
+      "priority": "required",
+      "dataType": "string",
+      "validation": "^[A-Z0-9]{8,20}$"
+    },
+    {
+      "fieldName": "船名航次",
+      "jsonPath": "header.vesselVoyage",
+      "extractionPrompt": "提取船名和航次，格式如：船名+航次号",
+      "priority": "required",
+      "dataType": "string"
+    },
+    {
+      "fieldName": "承运人",
+      "jsonPath": "header.carrier",
+      "extractionPrompt": "提取承运人名称（船公司）",
+      "priority": "optional",
+      "dataType": "string"
+    },
+    {
+      "fieldName": "起运港",
+      "jsonPath": "header.portOfLoading",
+      "extractionPrompt": "提取起运港（Port of Loading）名称",
+      "priority": "required",
+      "dataType": "string"
+    },
+    {
+      "fieldName": "目的港",
+      "jsonPath": "header.portOfDischarge",
+      "extractionPrompt": "提取目的港（Port of Discharge）名称",
+      "priority": "required",
+      "dataType": "string"
+    },
+    {
+      "fieldName": "交货地",
+      "jsonPath": "header.placeOfDelivery",
+      "extractionPrompt": "提取最终交货地点（Place of Delivery）",
+      "priority": "optional",
+      "dataType": "string"
+    },
+    {
+      "fieldName": "件数",
+      "jsonPath": "header.totalPackages",
+      "extractionPrompt": "提取总件数（Packages/Pieces）和单位，如：1000 CARTONS",
+      "priority": "required",
+      "dataType": "string"
+    },
+    {
+      "fieldName": "毛重",
+      "jsonPath": "header.grossWeight",
+      "extractionPrompt": "提取总毛重（Gross Weight），包含单位，如：12000KGS",
+      "priority": "required",
+      "dataType": "string"
+    },
+    {
+      "fieldName": "体积",
+      "jsonPath": "header.measurement",
+      "extractionPrompt": "提总体积（Measurement/CBM），如：25.5CBM",
+      "priority": "optional",
+      "dataType": "string"
+    },
+    {
+      "fieldName": "发货人",
+      "jsonPath": "header.shipper",
+      "extractionPrompt": "提取发货人（Shipper）名称和地址",
+      "priority": "required",
+      "dataType": "object"
+    },
+    {
+      "fieldName": "收货人",
+      "jsonPath": "header.consignee",
+      "extractionPrompt": "提取收货人（Consignee）名称和地址",
+      "priority": "required",
+      "dataType": "object"
+    },
+    {
+      "fieldName": "通知人",
+      "jsonPath": "header.notifyParty",
+      "extractionPrompt": "提取通知人（Notify Party）名称和地址",
+      "priority": "optional",
+      "dataType": "object"
+    },
+    {
+      "fieldName": "唛头",
+      "jsonPath": "header.marksAndNumbers",
+      "extractionPrompt": "提取唛头（Marks & Numbers）",
+      "priority": "optional",
+      "dataType": "string"
+    },
+    {
+      "fieldName": "货物描述",
+      "jsonPath": "header.goodsDescription",
+      "extractionPrompt": "提取货物描述（Description of Goods）",
+      "priority": "required",
+      "dataType": "string"
+    }
+  ]
+}

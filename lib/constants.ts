@@ -148,12 +148,30 @@ export const MATERIAL_REQUIREMENTS: Record<string, MaterialRequirement[]> = {
   ],
 };
 
-// 导航菜单配置
+// 导航菜单配置（更新为综保区/口岸结构）
 export const MENU_ITEMS = [
   { key: '/', icon: 'HomeOutlined', label: '首页' },
-  { key: '/dashboard/import', icon: 'DownloadOutlined', label: '进口申报' },
-  { key: '/dashboard/export', icon: 'UploadOutlined', label: '出口申报' },
-  { key: '/dashboard/transfer', icon: 'SwapOutlined', label: '转仓申报' },
+  {
+    key: 'bonded-zone',
+    icon: 'DownloadOutlined',
+    label: '综保区进出区清关',
+    children: [
+      { key: '/dashboard/bonded-zone/first-import', icon: '', label: '一线进口' },
+      { key: '/dashboard/bonded-zone/first-export', icon: '', label: '一线出口' },
+      { key: '/dashboard/bonded-zone/second-in', icon: '', label: '二线进仓' },
+      { key: '/dashboard/bonded-zone/second-out', icon: '', label: '二线出仓' },
+      { key: '/dashboard/bonded-zone/transfer', icon: '', label: '区内流转' },
+    ],
+  },
+  {
+    key: 'port',
+    icon: 'UploadOutlined',
+    label: '口岸进出口清关',
+    children: [
+      { key: '/dashboard/port/import', icon: '', label: '口岸进口' },
+      { key: '/dashboard/port/export', icon: '', label: '口岸出口' },
+    ],
+  },
   { key: '/dashboard/tasks', icon: 'UnorderedListOutlined', label: '任务管理' },
   { key: '/dashboard/history', icon: 'HistoryOutlined', label: '历史记录' },
 ];

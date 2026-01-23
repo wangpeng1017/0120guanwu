@@ -179,7 +179,7 @@ export default function TaskDetailPage() {
               ),
               children: (
                 <div className="space-y-6">
-                  <MaterialChecklist businessDirection={task.businessDirection} supervisionLevel={task.supervisionLevel} tradeMode={task.tradeMode} />
+                  <MaterialChecklist businessType={task.businessType || 'BONDED_ZONE_FIRST_IMPORT'} />
                   <MaterialUpload taskId={task.id} />
                 </div>
               ),

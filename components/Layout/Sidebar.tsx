@@ -32,15 +32,13 @@ export function Sidebar() {
   const [selectedKey, setSelectedKey] = useState('/');
 
   useEffect(() => {
-    // 处理路由匹配
+    // 处理路由匹配（更新为新的菜单结构）
     if (pathname === '/' || pathname === '/dashboard' || pathname === '/dashboard/page') {
       setSelectedKey('/');
-    } else if (pathname.startsWith('/dashboard/import')) {
-      setSelectedKey('/dashboard/import');
-    } else if (pathname.startsWith('/dashboard/export')) {
-      setSelectedKey('/dashboard/export');
-    } else if (pathname.startsWith('/dashboard/transfer')) {
-      setSelectedKey('/dashboard/transfer');
+    } else if (pathname.startsWith('/dashboard/bonded-zone')) {
+      setSelectedKey(pathname);
+    } else if (pathname.startsWith('/dashboard/port')) {
+      setSelectedKey(pathname);
     } else if (pathname.startsWith('/dashboard/tasks')) {
       setSelectedKey('/dashboard/tasks');
     } else if (pathname.startsWith('/dashboard/history')) {
@@ -52,6 +50,21 @@ export function Sidebar() {
 
   const menuItems = MENU_ITEMS.map((item) => {
     const IconComponent = iconMap[item.icon];
+
+    // 如果有子菜单，返回子菜单结构
+    if (item.children && item.children.length > 0) {
+      return {
+        key: item.key,
+        icon: <IconComponent />,
+        label: item.label,
+        children: item.children.map(child => ({
+          key: child.key,
+          label: child.label,
+        })),
+      };
+    }
+
+    // 普通菜单项
     return {
       key: item.key,
       icon: <IconComponent />,

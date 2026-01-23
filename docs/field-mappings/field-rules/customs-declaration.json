@@ -1,0 +1,197 @@
+{
+  "materialType": "CUSTOMS_DECLARATION",
+  "description": "报关单字段提取规则",
+  "extractFields": [
+    {
+      "fieldName": "预录入编号",
+      "jsonPath": "header.preEntryNo",
+      "extractionPrompt": "提取预录入编号",
+      "priority": "required",
+      "dataType": "string"
+    },
+    {
+      "fieldName": "海关编号",
+      "jsonPath": "header.customsNo",
+      "extractionPrompt": "提取海关编号",
+      "priority": "optional",
+      "dataType": "string"
+    },
+    {
+      "fieldName": "申报日期",
+      "jsonPath": "header.declarationDate",
+      "extractionPrompt": "提取申报日期，格式YYYY-MM-DD",
+      "priority": "required",
+      "dataType": "date"
+    },
+    {
+      "fieldName": "申报单位",
+      "jsonPath": "header.declarant",
+      "extractionPrompt": "提取申报单位名称",
+      "priority": "required",
+      "dataType": "string"
+    },
+    {
+      "fieldName": "收发货人",
+      "jsonPath": "header.consignee",
+      "extractionPrompt": "提取收发货人名称",
+      "priority": "required",
+      "dataType": "string"
+    },
+    {
+      "fieldName": "生产销售单位",
+      "jsonPath": "header.manufacturer",
+      "extractionPrompt": "提取生产销售单位名称",
+      "priority": "optional",
+      "dataType": "string"
+    },
+    {
+      "fieldName": "贸易方式",
+      "jsonPath": "header.tradeMode",
+      "extractionPrompt": "提取贸易方式，如一般贸易、加工贸易等",
+      "priority": "required",
+      "dataType": "string"
+    },
+    {
+      "fieldName": "征免性质",
+      "jsonPath": "header.exemptionNature",
+      "extractionPrompt": "提取征免性质",
+      "priority": "optional",
+      "dataType": "string"
+    },
+    {
+      "fieldName": "运输方式",
+      "jsonPath": "header.transportMode",
+      "extractionPrompt": "提取运输方式，如水路、航空、公路等",
+      "priority": "required",
+      "dataType": "string"
+    },
+    {
+      "fieldName": "起运国/运抵国",
+      "jsonPath": "header.country",
+      "extractionPrompt": "提取起运国或运抵国名称",
+      "priority": "required",
+      "dataType": "string"
+    },
+    {
+      "fieldName": "指运港/装货港",
+      "jsonPath": "header.port",
+      "extractionPrompt": "提取指运港或装货港名称",
+      "priority": "optional",
+      "dataType": "string"
+    },
+    {
+      "fieldName": "币制",
+      "jsonPath": "header.currency",
+      "extractionPrompt": "提取币制",
+      "priority": "required",
+      "dataType": "string"
+    },
+    {
+      "fieldName": "成交方式",
+      "jsonPath": "header.transactionMode",
+      "extractionPrompt": "提取成交方式，如FOB、CIF等",
+      "priority": "optional",
+      "dataType": "string"
+    },
+    {
+      "fieldName": "件数",
+      "jsonPath": "header.totalPackages",
+      "extractionPrompt": "提取总件数",
+      "priority": "required",
+      "dataType": "number"
+    },
+    {
+      "fieldName": "毛重（千克）",
+      "jsonPath": "header.grossWeight",
+      "extractionPrompt": "提取总毛重（千克）",
+      "priority": "required",
+      "dataType": "number"
+    },
+    {
+      "fieldName": "净重（千克）",
+      "jsonPath": "header.netWeight",
+      "extractionPrompt": "提取总净重（千克）",
+      "priority": "optional",
+      "dataType": "number"
+    },
+    {
+      "fieldName": "集装箱号",
+      "jsonPath": "header.containerNo",
+      "extractionPrompt": "提取集装箱号",
+      "priority": "optional",
+      "dataType": "string"
+    },
+    {
+      "fieldName": "随附单证",
+      "jsonPath": "header.attachments",
+      "extractionPrompt": "提取随附单证信息",
+      "priority": "optional",
+      "dataType": "string"
+    }
+  ],
+  "bodyFields": [
+    {
+      "fieldName": "项号",
+      "jsonPath": "body[].itemNo",
+      "extractionPrompt": "提取商品项号",
+      "priority": "required",
+      "dataType": "number"
+    },
+    {
+      "fieldName": "商品名称",
+      "jsonPath": "body[].goodsName",
+      "extractionPrompt": "提取商品名称",
+      "priority": "required",
+      "dataType": "string"
+    },
+    {
+      "fieldName": "商品编码",
+      "jsonPath": "body[].hsCode",
+      "extractionPrompt": "提取商品编码（HS编码）",
+      "priority": "required",
+      "dataType": "string"
+    },
+    {
+      "fieldName": "数量及单位",
+      "jsonPath": "body[].quantity",
+      "extractionPrompt": "提取数量及单位",
+      "priority": "required",
+      "dataType": "string"
+    },
+    {
+      "fieldName": "原产国/最终目的国",
+      "jsonPath": "body[].originCountry",
+      "extractionPrompt": "提取原产国或最终目的国",
+      "priority": "required",
+      "dataType": "string"
+    },
+    {
+      "fieldName": "单价",
+      "jsonPath": "body[].unitPrice",
+      "extractionPrompt": "提取单价",
+      "priority": "optional",
+      "dataType": "number"
+    },
+    {
+      "fieldName": "总价",
+      "jsonPath": "body[].totalPrice",
+      "extractionPrompt": "提取总价",
+      "priority": "optional",
+      "dataType": "number"
+    },
+    {
+      "fieldName": "币制",
+      "jsonPath": "body[].currency",
+      "extractionPrompt": "提取币制",
+      "priority": "optional",
+      "dataType": "string"
+    },
+    {
+      "fieldName": "征免",
+      "jsonPath": "body[].exemption",
+      "extractionPrompt": "提取征免方式",
+      "priority": "optional",
+      "dataType": "string"
+    }
+  ]
+}

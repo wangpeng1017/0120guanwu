@@ -34,3 +34,15 @@ yarn-error.log*
 next-env.d.ts
 
 /lib/generated/prisma
+
+# 测试单据文件
+新增测试单据类型/
+temp_docs/
+一线进出口-*.pdf
+报关机器.xlsx
+_write_*.py
+新增测试单据类型
+temp_docs
+一线进出口-*.pdf
+报关机器.xlsx
+_write_*.py

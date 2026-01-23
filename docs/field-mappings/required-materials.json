@@ -1,0 +1,150 @@
+{
+  "businessTypes": {
+    "BONDED_ZONE_FIRST_IMPORT": {
+      "code": "BONDED_ZONE_FIRST_IMPORT",
+      "name": "综保区一线进口",
+      "description": "货物从境外进入综合保税区",
+      "required": [
+        { "type": "BILL_OF_LADING", "name": "提单", "minCount": 1 },
+        { "type": "COMMERCIAL_INVOICE", "name": "商业发票", "minCount": 1 },
+        { "type": "PACKING_LIST", "name": "装箱单", "minCount": 1 },
+        { "type": "BONDED_NOTE", "name": "核注清单", "minCount": 1 }
+      ],
+      "optional": [
+        { "type": "CONTRACT", "name": "合同" }
+      ]
+    },
+    "BONDED_ZONE_FIRST_EXPORT": {
+      "code": "BONDED_ZONE_FIRST_EXPORT",
+      "name": "综保区一线出口",
+      "description": "货物从综合保税区运往境外",
+      "required": [
+        { "type": "BILL_OF_LADING", "name": "提单", "minCount": 1 },
+        { "type": "COMMERCIAL_INVOICE", "name": "商业发票", "minCount": 1 },
+        { "type": "PACKING_LIST", "name": "装箱单", "minCount": 1 },
+        { "type": "BONDED_NOTE", "name": "核注清单", "minCount": 1 }
+      ],
+      "optional": [
+        { "type": "CONTRACT", "name": "合同" }
+      ]
+    },
+    "BONDED_ZONE_SECOND_IN_WAREHOUSE": {
+      "code": "BONDED_ZONE_SECOND_IN_WAREHOUSE",
+      "name": "综保区二线进仓（区间调拨）",
+      "description": "保税区间货物调拨进仓",
+      "required": [
+        { "type": "BONDED_NOTE", "name": "核注清单", "minCount": 1 }
+      ],
+      "optional": [
+        { "type": "COMMERCIAL_INVOICE", "name": "商业发票" },
+        { "type": "PACKING_LIST", "name": "装箱单" }
+      ]
+    },
+    "BONDED_ZONE_SECOND_IN_ZONE": {
+      "code": "BONDED_ZONE_SECOND_IN_ZONE",
+      "name": "综保区二线进仓（区内调拨）",
+      "description": "综保区内货物调拨进仓",
+      "required": [
+        { "type": "BONDED_NOTE", "name": "核注清单", "minCount": 1 }
+      ],
+      "optional": [
+        { "type": "COMMERCIAL_INVOICE", "name": "商业发票" },
+        { "type": "PACKING_LIST", "name": "装箱单" }
+      ]
+    },
+    "BONDED_ZONE_SECOND_OUT_GENERAL": {
+      "code": "BONDED_ZONE_SECOND_OUT_GENERAL",
+      "name": "综保区二线出仓（一般贸易）",
+      "description": "货物从综合保税区运往境内（一般贸易）",
+      "required": [
+        { "type": "CUSTOMS_DECLARATION", "name": "报关单", "minCount": 1 },
+        { "type": "BONDED_NOTE", "name": "核注清单", "minCount": 1 }
+      ],
+      "optional": [
+        { "type": "COMMERCIAL_INVOICE", "name": "商业发票" },
+        { "type": "PACKING_LIST", "name": "装箱单" },
+        { "type": "CONTRACT", "name": "合同" }
+      ]
+    },
+    "BONDED_ZONE_SECOND_OUT_PROCESSING": {
+      "code": "BONDED_ZONE_SECOND_OUT_PROCESSING",
+      "name": "综保区二线出仓（加工贸易）",
+      "description": "货物从综合保税区运往境内（加工贸易）",
+      "required": [
+        { "type": "CUSTOMS_DECLARATION", "name": "报关单", "minCount": 1 },
+        { "type": "BONDED_NOTE", "name": "核注清单", "minCount": 1 }
+      ],
+      "optional": [
+        { "type": "COMMERCIAL_INVOICE", "name": "商业发票" },
+        { "type": "PACKING_LIST", "name": "装箱单" },
+        { "type": "CONTRACT", "name": "合同" }
+      ]
+    },
+    "BONDED_ZONE_SECOND_OUT_WAREHOUSE": {
+      "code": "BONDED_ZONE_SECOND_OUT_WAREHOUSE",
+      "name": "综保区二线出仓（区间调拨）",
+      "description": "保税区间货物调拨出仓",
+      "required": [
+        { "type": "BONDED_NOTE", "name": "核注清单", "minCount": 1 }
+      ],
+      "optional": [
+        { "type": "COMMERCIAL_INVOICE", "name": "商业发票" },
+        { "type": "PACKING_LIST", "name": "装箱单" }
+      ]
+    },
+    "BONDED_ZONE_SECOND_OUT_ZONE": {
+      "code": "BONDED_ZONE_SECOND_OUT_ZONE",
+      "name": "综保区二线出仓（区内调拨）",
+      "description": "综保区内货物调拨出仓",
+      "required": [
+        { "type": "BONDED_NOTE", "name": "核注清单", "minCount": 1 }
+      ],
+      "optional": [
+        { "type": "COMMERCIAL_INVOICE", "name": "商业发票" },
+        { "type": "PACKING_LIST", "name": "装箱单" }
+      ]
+    },
+    "BONDED_ZONE_TRANSFER": {
+      "code": "BONDED_ZONE_TRANSFER",
+      "name": "综保区区内流转",
+      "description": "综合保税区内企业之间货物流转",
+      "required": [
+        { "type": "BONDED_NOTE", "name": "核注清单", "minCount": 2 }
+      ],
+      "optional": [
+        { "type": "COMMERCIAL_INVOICE", "name": "商业发票" },
+        { "type": "PACKING_LIST", "name": "装箱单" }
+      ]
+    },
+    "PORT_IMPORT": {
+      "code": "PORT_IMPORT",
+      "name": "口岸进口",
+      "description": "货物从境外进口到口岸",
+      "required": [
+        { "type": "BILL_OF_LADING", "name": "提单", "minCount": 1 },
+        { "type": "COMMERCIAL_INVOICE", "name": "商业发票", "minCount": 1 },
+        { "type": "PACKING_LIST", "name": "装箱单", "minCount": 1 },
+        { "type": "CONTRACT", "name": "合同", "minCount": 1 }
+      ],
+      "optional": [
+        { "type": "CUSTOMS_DECLARATION", "name": "报关单" },
+        { "type": "CERTIFICATE", "name": "原产地证" }
+      ]
+    },
+    "PORT_EXPORT": {
+      "code": "PORT_EXPORT",
+      "name": "口岸出口",
+      "description": "货物从口岸出口到境外",
+      "required": [
+        { "type": "BILL_OF_LADING", "name": "提单", "minCount": 1 },
+        { "type": "COMMERCIAL_INVOICE", "name": "商业发票", "minCount": 1 },
+        { "type": "PACKING_LIST", "name": "装箱单", "minCount": 1 },
+        { "type": "CONTRACT", "name": "合同", "minCount": 1 }
+      ],
+      "optional": [
+        { "type": "CUSTOMS_DECLARATION", "name": "报关单" },
+        { "type": "CERTIFICATE", "name": "原产地证" }
+      ]
+    }
+  }
+}

@@ -179,13 +179,17 @@ export async function parseFromUrl(
   // 尝试从本地路径读取
   if (storedName) {
     const localPaths = [
-      `/root/guanwu-uploads/${storedName}`,
-      storedName,
+      `/root/guanwu-system/public${storedName}`,  // 上传文件的实际路径
+      `/root/guanwu-uploads${storedName}`,         // 备用路径
+      storedName,                                  // 绝对路径
     ];
 
+    console.log(`[parseFromUrl] 查找本地文件，storedName: ${storedName}`);
+
     for (const localPath of localPaths) {
+      console.log(`[parseFromUrl] 尝试路径: ${localPath}, 存在: ${fs.existsSync(localPath)}`);
       if (fs.existsSync(localPath)) {
-        console.log(`[parseFromLocalPath] 找到文件: ${localPath}`);
+        console.log(`[parseFromLocalPath] 找到文件: ${localPath}, 大小: ${fs.statSync(localPath).size} bytes`);
         const buffer = fs.readFileSync(localPath);
 
         if (mimeType === 'application/pdf' || originalName.toLowerCase().endsWith('.pdf')) {

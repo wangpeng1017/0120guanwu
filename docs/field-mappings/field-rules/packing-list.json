@@ -1,0 +1,120 @@
+{
+  "materialType": "PACKING_LIST",
+  "description": "装箱单字段提取规则",
+  "extractFields": [
+    {
+      "fieldName": "装箱单号",
+      "jsonPath": "header.packingListNo",
+      "extractionPrompt": "提取装箱单号（Packing List No.）",
+      "priority": "optional",
+      "dataType": "string"
+    },
+    {
+      "fieldName": "日期",
+      "jsonPath": "header.date",
+      "extractionPrompt": "提取装箱单日期，格式YYYY-MM-DD",
+      "priority": "optional",
+      "dataType": "date"
+    },
+    {
+      "fieldName": "发货人",
+      "jsonPath": "header.shipper",
+      "extractionPrompt": "提取发货人名称和地址",
+      "priority": "required",
+      "dataType": "object"
+    },
+    {
+      "fieldName": "收货人",
+      "jsonPath": "header.consignee",
+      "extractionPrompt": "提取收货人名称和地址",
+      "priority": "required",
+      "dataType": "object"
+    },
+    {
+      "fieldName": "总件数",
+      "jsonPath": "header.totalPackages",
+      "extractionPrompt": "提取总件数和包装单位",
+      "priority": "required",
+      "dataType": "string"
+    },
+    {
+      "fieldName": "总毛重",
+      "jsonPath": "header.totalGrossWeight",
+      "extractionPrompt": "提取总毛重，包含单位",
+      "priority": "required",
+      "dataType": "string"
+    },
+    {
+      "fieldName": "总净重",
+      "jsonPath": "header.totalNetWeight",
+      "extractionPrompt": "提取总净重，包含单位",
+      "priority": "required",
+      "dataType": "string"
+    },
+    {
+      "fieldName": "总体积",
+      "jsonPath": "header.totalMeasurement",
+      "extractionPrompt": "提总体积（CBM）",
+      "priority": "optional",
+      "dataType": "string"
+    }
+  ],
+  "bodyFields": [
+    {
+      "fieldName": "项号",
+      "jsonPath": "body[].itemNo",
+      "extractionPrompt": "提取商品项号",
+      "priority": "required",
+      "dataType": "number"
+    },
+    {
+      "fieldName": "商品描述",
+      "jsonPath": "body[].description",
+      "extractionPrompt": "提取商品描述",
+      "priority": "required",
+      "dataType": "string"
+    },
+    {
+      "fieldName": "数量",
+      "jsonPath": "body[].quantity",
+      "extractionPrompt": "提取商品数量",
+      "priority": "required",
+      "dataType": "number"
+    },
+    {
+      "fieldName": "单位",
+      "jsonPath": "body[].unit",
+      "extractionPrompt": "提取数量单位",
+      "priority": "required",
+      "dataType": "string"
+    },
+    {
+      "fieldName": "毛重",
+      "jsonPath": "body[].grossWeight",
+      "extractionPrompt": "提取商品毛重",
+      "priority": "required",
+      "dataType": "string"
+    },
+    {
+      "fieldName": "净重",
+      "jsonPath": "body[].netWeight",
+      "extractionPrompt": "提取商品净重",
+      "priority": "required",
+      "dataType": "string"
+    },
+    {
+      "fieldName": "体积",
+      "jsonPath": "body[].measurement",
+      "extractionPrompt": "提取商品体积",
+      "priority": "optional",
+      "dataType": "string"
+    },
+    {
+      "fieldName": "唛头",
+      "jsonPath": "body[].marks",
+      "extractionPrompt": "提取唛头",
+      "priority": "optional",
+      "dataType": "string"
+    }
+  ]
+}

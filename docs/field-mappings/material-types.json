@@ -1,0 +1,103 @@
+{
+  "materialTypes": {
+    "BILL_OF_LADING": {
+      "code": "BILL_OF_LADING",
+      "name": "提单",
+      "nameEn": "Bill of Lading",
+      "description": "海运/空运提单",
+      "filenamePatterns": [
+        "提单",
+        "Bill of Lading",
+        "B/L",
+        "BL",
+        ".BL."
+      ],
+      "fileExtensions": [".pdf", ".jpg", ".jpeg", ".png"]
+    },
+    "COMMERCIAL_INVOICE": {
+      "code": "COMMERCIAL_INVOICE",
+      "name": "商业发票",
+      "nameEn": "Commercial Invoice",
+      "description": "商业发票",
+      "filenamePatterns": [
+        "发票",
+        "Invoice",
+        "Commercial Invoice",
+        "INV"
+      ],
+      "fileExtensions": [".pdf", ".xlsx", ".xls", ".jpg", ".jpeg", ".png"]
+    },
+    "PACKING_LIST": {
+      "code": "PACKING_LIST",
+      "name": "装箱单",
+      "nameEn": "Packing List",
+      "description": "装箱单/包装明细",
+      "filenamePatterns": [
+        "箱单",
+        "装箱单",
+        "Packing List",
+        "PL",
+        "Packlist"
+      ],
+      "fileExtensions": [".pdf", ".xlsx", ".xls", ".jpg", ".jpeg", ".png"]
+    },
+    "CONTRACT": {
+      "code": "CONTRACT",
+      "name": "合同",
+      "nameEn": "Contract",
+      "description": "贸易合同",
+      "filenamePatterns": [
+        "合同",
+        "Contract",
+        "Sales Contract",
+        "Purchase Contract"
+      ],
+      "fileExtensions": [".pdf", ".jpg", ".jpeg", ".png"]
+    },
+    "CUSTOMS_DECLARATION": {
+      "code": "CUSTOMS_DECLARATION",
+      "name": "报关单",
+      "nameEn": "Customs Declaration",
+      "description": "进出口报关单",
+      "filenamePatterns": [
+        "报关单",
+        "Customs Declaration",
+        "Declaration"
+      ],
+      "fileExtensions": [".pdf", ".jpg", ".jpeg", ".png"]
+    },
+    "BONDED_NOTE": {
+      "code": "BONDED_NOTE",
+      "name": "核注清单",
+      "nameEn": "Bonded Note",
+      "description": "保税核注清单",
+      "filenamePatterns": [
+        "核注清单",
+        "Bonded Note",
+        "核注"
+      ],
+      "fileExtensions": [".pdf", ".jpg", ".jpeg", ".png"]
+    },
+    "CERTIFICATE": {
+      "code": "CERTIFICATE",
+      "name": "原产地证",
+      "nameEn": "Certificate of Origin",
+      "description": "原产地证书",
+      "filenamePatterns": [
+        "原产地证",
+        "Certificate",
+        "CO",
+        "Origin"
+      ],
+      "fileExtensions": [".pdf", ".jpg", ".jpeg", ".png"]
+    },
+    "OTHER": {
+      "code": "OTHER",
+      "name": "其他",
+      "nameEn": "Other",
+      "description": "其他单据",
+      "filenamePatterns": [],
+      "fileExtensions": []
+    }
+  }
+}

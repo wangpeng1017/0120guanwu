@@ -1,0 +1,60 @@
+{
+  "businessCategories": {
+    "BONDED_ZONE": {
+      "code": "BONDED_ZONE",
+      "name": "综保区进出区清关",
+      "description": "综合保税区进出区清关业务",
+      "businessTypes": {
+        "BONDED_ZONE_FIRST_IMPORT": {
+          "code": "BONDED_ZONE_FIRST_IMPORT",
+          "name": "一线进口",
+          "description": "货物从境外进入综合保税区",
+          "declarationType": "进境备案清单+进口核注清单"
+        },
+        "BONDED_ZONE_FIRST_EXPORT": {
+          "code": "BONDED_ZONE_FIRST_EXPORT",
+          "name": "一线出口",
+          "description": "货物从综合保税区运往境外",
+          "declarationType": "出境备案清单+出口核注清单"
+        },
+        "BONDED_ZONE_SECOND_IN": {
+          "code": "BONDED_ZONE_SECOND_IN",
+          "name": "二线进仓",
+          "description": "货物从境内进入综合保税区",
+          "declarationType": "进口核注清单"
+        },
+        "BONDED_ZONE_SECOND_OUT": {
+          "code": "BONDED_ZONE_SECOND_OUT",
+          "name": "二线出仓",
+          "description": "货物从综合保税区运往境内",
+          "declarationType": "进口报关单+出口核注清单"
+        },
+        "BONDED_ZONE_TRANSFER": {
+          "code": "BONDED_ZONE_TRANSFER",
+          "name": "区内流转",
+          "description": "综合保税区内企业之间货物流转",
+          "declarationType": "核注清单"
+        }
+      }
+    },
+    "PORT": {
+      "code": "PORT",
+      "name": "口岸进出口清关",
+      "description": "口岸进出口清关业务",
+      "businessTypes": {
+        "PORT_IMPORT": {
+          "code": "PORT_IMPORT",
+          "name": "口岸进口",
+          "description": "货物从境外进口到口岸",
+          "declarationType": "进口报关单"
+        },
+        "PORT_EXPORT": {
+          "code": "PORT_EXPORT",
+          "name": "口岸出口",
+          "description": "货物从口岸出口到境外",
+          "declarationType": "出口报关单"
+        }
+      }
+    }
+  }
+}

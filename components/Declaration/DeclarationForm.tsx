@@ -115,21 +115,31 @@ export function DeclarationForm({ task, onTaskUpdated }: DeclarationFormProps) {
 
   // AI 提取 - 直接更新本地状态，不需要刷新页面
   const handleAIExtract = async () => {
+    console.log('[AI提取] 开始提取，任务ID:', task.id);
+    console.log('[AI提取] 任务状态:', task.status);
+    console.log('[AI提取] 申报数据:', task.declarations);
+
     setExtracting(true);
     try {
+      console.log('[AI提取] 发送请求到 /api/extract');
       const response = await fetch('/api/extract', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ taskId: task.id }),
       });
 
+      console.log('[AI提取] 响应状态:', response.status);
+
       const result = await response.json();
+      console.log('[AI提取] 响应结果:', result);
 
       if (result.success) {
+        console.log('[AI提取] 提取成功，数据:', result.extracted);
         message.success('AI 提取成功！请检查并补充信息');
 
         // 直接更新本地状态，填充提取的数据
         if (result.extracted) {
+          console.log('[AI提取] 开始填充表单数据');
           const { header, items } = result.extracted;
 
           // 转换表头数据
@@ -185,19 +195,23 @@ export function DeclarationForm({ task, onTaskUpdated }: DeclarationFormProps) {
           form.setFieldsValue(headerValues);
           setItems(transformedItems);
           setDeclarationData({ header: headerValues, items: transformedItems });
+          console.log('[AI提取] 表单数据填充完成');
         }
 
         // 通知父组件刷新任务数据（如果需要）
         if (onTaskUpdated) {
+          console.log('[AI提取] 通知父组件刷新');
           onTaskUpdated();
         }
       } else {
+        console.error('[AI提取] 提取失败:', result.error);
         message.error(result.error || 'AI 提取失败');
       }
     } catch (error) {
-      console.error('AI 提取失败:', error);
+      console.error('[AI提取] 请求失败:', error);
       message.error('AI 提取失败，请重试');
     } finally {
+      console.log('[AI提取] 结束提取状态');
       setExtracting(false);
     }
   };

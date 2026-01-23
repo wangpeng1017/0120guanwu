@@ -1,0 +1,69 @@
+{
+  "materialType": "CONTRACT",
+  "description": "合同字段提取规则",
+  "extractFields": [
+    {
+      "fieldName": "合同号",
+      "jsonPath": "header.contractNo",
+      "extractionPrompt": "提取合同号（Contract No.）",
+      "priority": "required",
+      "dataType": "string"
+    },
+    {
+      "fieldName": "合同日期",
+      "jsonPath": "header.contractDate",
+      "extractionPrompt": "提取合同签订日期，格式YYYY-MM-DD",
+      "priority": "required",
+      "dataType": "date"
+    },
+    {
+      "fieldName": "卖方",
+      "jsonPath": "header.seller",
+      "extractionPrompt": "提取卖方名称和地址",
+      "priority": "required",
+      "dataType": "object"
+    },
+    {
+      "fieldName": "买方",
+      "jsonPath": "header.buyer",
+      "extractionPrompt": "提取买方名称和地址",
+      "priority": "required",
+      "dataType": "object"
+    },
+    {
+      "fieldName": "币制",
+      "jsonPath": "header.currency",
+      "extractionPrompt": "提取合同货币代码",
+      "priority": "required",
+      "dataType": "string"
+    },
+    {
+      "fieldName": "合同金额",
+      "jsonPath": "header.contractAmount",
+      "extractionPrompt": "提取合同总金额",
+      "priority": "required",
+      "dataType": "number"
+    },
+    {
+      "fieldName": "贸易方式",
+      "jsonPath": "header.tradeTerm",
+      "extractionPrompt": "提取贸易条款",
+      "priority": "optional",
+      "dataType": "string"
+    },
+    {
+      "fieldName": "付款方式",
+      "jsonPath": "header.paymentTerm",
+      "extractionPrompt": "提取付款方式",
+      "priority": "optional",
+      "dataType": "string"
+    },
+    {
+      "fieldName": "交货期",
+      "jsonPath": "header.deliveryDate",
+      "extractionPrompt": "提取交货日期",
+      "priority": "optional",
+      "dataType": "date"
+    }
+  ]
+}

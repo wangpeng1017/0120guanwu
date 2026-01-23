@@ -1,0 +1,134 @@
+{
+  "materialType": "COMMERCIAL_INVOICE",
+  "description": "商业发票字段提取规则",
+  "extractFields": [
+    {
+      "fieldName": "发票号",
+      "jsonPath": "header.invoiceNo",
+      "extractionPrompt": "提取发票号（Invoice No.）",
+      "priority": "required",
+      "dataType": "string"
+    },
+    {
+      "fieldName": "发票日期",
+      "jsonPath": "header.invoiceDate",
+      "extractionPrompt": "提取发票日期（Invoice Date），格式YYYY-MM-DD",
+      "priority": "required",
+      "dataType": "date"
+    },
+    {
+      "fieldName": "卖方",
+      "jsonPath": "header.seller",
+      "extractionPrompt": "提取卖方（Seller/Exporter）名称和地址",
+      "priority": "required",
+      "dataType": "object"
+    },
+    {
+      "fieldName": "买方",
+      "jsonPath": "header.buyer",
+      "extractionPrompt": "提取买方（Buyer/Consignee）名称和地址",
+      "priority": "required",
+      "dataType": "object"
+    },
+    {
+      "fieldName": "币制",
+      "jsonPath": "header.currency",
+      "extractionPrompt": "提取货币代码，如USD、CNY、EUR等",
+      "priority": "required",
+      "dataType": "string"
+    },
+    {
+      "fieldName": "总价",
+      "jsonPath": "header.totalAmount",
+      "extractionPrompt": "提取发票总金额（Total Amount）",
+      "priority": "required",
+      "dataType": "number"
+    },
+    {
+      "fieldName": "贸易方式",
+      "jsonPath": "header.tradeTerm",
+      "extractionPrompt": "提取贸易条款，如FOB、CIF、EXW等",
+      "priority": "optional",
+      "dataType": "string"
+    },
+    {
+      "fieldName": "付款方式",
+      "jsonPath": "header.paymentTerm",
+      "extractionPrompt": "提取付款方式（Payment Term），如T/T、L/C等",
+      "priority": "optional",
+      "dataType": "string"
+    },
+    {
+      "fieldName": "起运国",
+      "jsonPath": "header.originCountry",
+      "extractionPrompt": "提取起运国或原产国名称",
+      "priority": "optional",
+      "dataType": "string"
+    },
+    {
+      "fieldName": "合同号",
+      "jsonPath": "header.contractNo",
+      "extractionPrompt": "提取合同号（Contract No.）",
+      "priority": "optional",
+      "dataType": "string"
+    }
+  ],
+  "bodyFields": [
+    {
+      "fieldName": "项号",
+      "jsonPath": "body[].itemNo",
+      "extractionPrompt": "提取商品项号",
+      "priority": "required",
+      "dataType": "number"
+    },
+    {
+      "fieldName": "商品名称",
+      "jsonPath": "body[].description",
+      "extractionPrompt": "提取商品描述（Description）",
+      "priority": "required",
+      "dataType": "string"
+    },
+    {
+      "fieldName": "数量",
+      "jsonPath": "body[].quantity",
+      "extractionPrompt": "提取商品数量（Quantity）",
+      "priority": "required",
+      "dataType": "number"
+    },
+    {
+      "fieldName": "单位",
+      "jsonPath": "body[].unit",
+      "extractionPrompt": "提取数量单位，如PCS、KGS、SETS等",
+      "priority": "required",
+      "dataType": "string"
+    },
+    {
+      "fieldName": "单价",
+      "jsonPath": "body[].unitPrice",
+      "extractionPrompt": "提取商品单价（Unit Price）",
+      "priority": "required",
+      "dataType": "number"
+    },
+    {
+      "fieldName": "总价",
+      "jsonPath": "body[].totalPrice",
+      "extractionPrompt": "提取商品总价（Amount）",
+      "priority": "required",
+      "dataType": "number"
+    },
+    {
+      "fieldName": "毛重",
+      "jsonPath": "body[].grossWeight",
+      "extractionPrompt": "提取商品毛重（G.W.）",
+      "priority": "optional",
+      "dataType": "string"
+    },
+    {
+      "fieldName": "净重",
+      "jsonPath": "body[].netWeight",
+      "extractionPrompt": "提取商品净重（N.W.）",
+      "priority": "optional",
+      "dataType": "string"
+    }
+  ]
+}

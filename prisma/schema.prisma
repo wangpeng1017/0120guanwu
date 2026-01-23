@@ -1,132 +1,155 @@
 // 报关系统 Prisma Schema
-// 业务类型枚举
-enum BusinessDirection {
-  IMPORT     // 进口
-  EXPORT     // 出口
-  TRANSFER   // 转仓
+// 更新日期: 2026-01-23
+// 说明: 支持综保区/口岸业务类型，AI智能提取功能
+
+// 业务类别枚举
+enum BusinessCategory {
+  BONDED_ZONE // 综保区进出区清关
+  PORT // 口岸进出口清关
 }
 
-enum SupervisionLevel {
-  FIRST   // 一线
-  SECOND  // 二线
+// 绑保区业务类型枚举
+enum BondedZoneBusinessType {
+  FIRST_IMPORT // 一线进口
+  FIRST_EXPORT // 一线出口
+  SECOND_IN // 二线进仓
+  SECOND_OUT // 二线出仓
+  TRANSFER // 区内流转
 }
 
-enum TradeMode {
-  GENERAL     // 一般贸易
-  PROCESSING  // 加工贸易
+// 口岸业务类型枚举
+enum PortBusinessType {
+  PORT_IMPORT // 口岸进口
+  PORT_EXPORT // 口岸出口
 }
 
+// 任务状态枚举
 enum TaskStatus {
-  DRAFT       // 草稿
-  UPLOADING   // 上传中
-  EXTRACTING  // 提取中
-  EDITING     // 编辑中
-  GENERATING  // 生成中
-  COMPLETED   // 已完成
-  FAILED      // 失败
+  DRAFT // 草稿
+  UPLOADING // 上传中
+  EXTRACTING // 提取中
+  EDITING // 编辑中
+  GENERATING // 生成中
+  COMPLETED // 已完成
+  FAILED // 失败
 }
 
-enum FileType {
-  BILL_OF_LADING    // 提单
-  INVOICE           // 发票
-  PACKING_LIST      // 装箱单
-  CONTRACT          // 合同
-  CERTIFICATE       // 原产地证
-  OTHER             // 其他
+// 单据类型枚举（更新）
+enum MaterialType {
+  BILL_OF_LADING // 提单
+  COMMERCIAL_INVOICE // 商业发票
+  PACKING_LIST // 装箱单
+  CONTRACT // 合同
+  CUSTOMS_DECLARATION // 报关单
+  BONDED_NOTE // 核注清单
+  CERTIFICATE // 原产地证
+  OTHER // 其他
 }
 
-// 申报任务表
+// 申报任务表（更新）
 model Task {
-  id                String            @id @default(cuid())
-  taskNo            String            @unique  // 任务编号
-  businessDirection BusinessDirection
-  supervisionLevel  SupervisionLevel
-  tradeMode         TradeMode
-  status            TaskStatus        @default(DRAFT)
-  preEntryNo        String?           // 预录入编号
-  customsNo         String?           // 海关编号
+  id     String @id @default(cuid())
+  taskNo String @unique // 任务编号
+
+  // 业务类型（新增）
+  businessCategory BusinessCategory // 综保区/口岸
+  businessType     String // 具体业务类型代码（如：BONDED_ZONE_FIRST_IMPORT）
+  bondedZoneType   BondedZoneBusinessType? // 绑保区业务类型（可选）
+  portType         PortBusinessType? // 口岸业务类型（可选）
+
+  // 原有字段保留（兼容性）
+  status     TaskStatus @default(DRAFT)
+  preEntryNo String? // 预录入编号
+  customsNo  String? // 海关编号
 
   // 关联
-  materials         Material[]
-  declarations      Declaration[]
-  generatedFiles    GeneratedFile[]
-  operationLogs     OperationLog[]
+  materials      Material[]
+  declarations   Declaration[]
+  generatedFiles GeneratedFile[]
+  operationLogs  OperationLog[]
 
-  createdAt         DateTime          @default(now())
-  updatedAt         DateTime          @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
-// 材料文件表
+// 材料文件表（更新）
 model Material {
-  id              String    @id @default(cuid())
-  taskId          String
-  task            Task      @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  id     String @id @default(cuid())
+  taskId String
+  task   Task   @relation(fields: [taskId], references: [id], onDelete: Cascade)
 
-  fileType        FileType
-  originalName    String
-  storedName      String    // 存储文件名（UUID）
-  fileUrl         String    // OSS URL
-  fileSize        Int       // 字节
-  mimeType        String
+  // 单据类型（更新）
+  materialType MaterialType
+
+  // 文件信息
+  originalName String
+  storedName   String // 存储文件名（UUID）
+  fileUrl      String // OSS URL
+  fileSize     Int // 字节
+  mimeType     String
+
+  // 识别结果（新增）
+  recognitionMethod     String? // "filename-rule" | "ai-vision" | "mixed"
+  recognitionConfidence Float? // 单据类型识别置信度（0-1）
 
   // 提取的数据
-  extractedData   Json?     // 从文件中提取的数据
+  extractedData Json? // 从文件中提取的数据
 
-  createdAt       DateTime  @default(now())
+  createdAt DateTime @default(now())
 
   @@index([taskId])
 }
 
-// 申报要素表
+// 申报要素表（更新）
 model Declaration {
-  id              String    @id @default(cuid())
-  taskId          String
-  task            Task      @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  id     String @id @default(cuid())
+  taskId String
+  task   Task   @relation(fields: [taskId], references: [id], onDelete: Cascade)
 
-  // 表头数据（JSON格式，存储完整的报关单表头）
-  headerData      Json
+  // 分层数据结构
+  headerData Json // 表头数据，如：{提单号: "", 船名航次: "", ...}
+  bodyData   Json // 表体数据（商品明细数组），如：[{项号: "1", 商品名称: "", ...}]
 
-  // 表体数据（JSON数组，存储商品明细）
-  bodyData        Json
+  // AI 提取元数据（新增）
+  confidenceScore  Float? @default(0) // 整体置信度（0-1）
+  extractionMethod String // "filename-rule" | "ai-vision" | "mixed"
+  sourceMaterials  Json? // 记录每个字段来自哪个单据
 
-  // AI提取的置信度（0-1）
-  confidenceScore Float?
+  isConfirmed Boolean @default(false) // 用户是否已确认
 
-  isConfirmed     Boolean   @default(false) // 用户是否已确认
-
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@index([taskId])
 }
 
 // 生成的文件表
 model GeneratedFile {
-  id              String    @id @default(cuid())
-  taskId          String
-  task            Task      @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  id     String @id @default(cuid())
+  taskId String
+  task   Task   @relation(fields: [taskId], references: [id], onDelete: Cascade)
 
-  fileType        String    // import_declaration, export_declaration等
-  fileName        String
-  fileUrl         String
-  downloadCount   Int       @default(0)
+  fileType      String // import_declaration, export_declaration等
+  fileName      String
+  fileUrl       String
+  downloadCount Int    @default(0)
 
-  createdAt       DateTime  @default(now())
+  createdAt DateTime @default(now())
 
   @@index([taskId])
 }
 
 // 操作日志表
 model OperationLog {
-  id              String    @id @default(cuid())
-  taskId          String
-  task            Task      @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  id     String @id @default(cuid())
+  taskId String
+  task   Task   @relation(fields: [taskId], references: [id], onDelete: Cascade)
 
-  action          String    // create, upload, extract, generate, download等
-  details         Json?     // 操作详情
-  operator        String?   // 操作人
+  action   String // create, upload, extract, generate, download等
+  details  Json? // 操作详情
+  operator String? // 操作人
 
-  createdAt       DateTime  @default(now())
+  createdAt DateTime @default(now())
 
   @@index([taskId])
 }
