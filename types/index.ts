@@ -15,8 +15,11 @@ export interface BusinessType {
 // 任务状态（与 Prisma TaskStatus 枚举对齐）
 export type TaskStatus = 'DRAFT' | 'UPLOADING' | 'EXTRACTING' | 'EDITING' | 'GENERATING' | 'COMPLETED' | 'FAILED';
 
-// 文件类型（与 Prisma FileType 枚举对齐）
-export type FileType = 'BILL_OF_LADING' | 'INVOICE' | 'PACKING_LIST' | 'CONTRACT' | 'CERTIFICATE' | 'OTHER';
+// 单据类型（与 Prisma MaterialType 枚举对齐）
+export type MaterialType = 'BILL_OF_LADING' | 'COMMERCIAL_INVOICE' | 'PACKING_LIST' | 'CONTRACT' | 'CERTIFICATE' | 'CUSTOMS_DECLARATION' | 'BONDED_NOTE' | 'OTHER';
+
+// 文件类型别名（兼容性）
+export type FileType = MaterialType;
 
 // ============================================================
 // Prisma 模型类型
@@ -25,9 +28,10 @@ export type FileType = 'BILL_OF_LADING' | 'INVOICE' | 'PACKING_LIST' | 'CONTRACT
 export interface Task {
   id: string;
   taskNo: string;
-  businessDirection: BusinessDirection;
-  supervisionLevel: SupervisionLevel;
-  tradeMode: TradeMode;
+  businessCategory: 'BONDED_ZONE' | 'PORT';
+  businessType: string;
+  bondedZoneType: string | null;
+  portType: string | null;
   status: TaskStatus;
   preEntryNo: string | null;
   customsNo: string | null;
@@ -42,7 +46,7 @@ export interface Task {
 export interface Material {
   id: string;
   taskId: string;
-  fileType: FileType;
+  materialType: MaterialType;
   originalName: string;
   storedName: string;
   fileUrl: string;

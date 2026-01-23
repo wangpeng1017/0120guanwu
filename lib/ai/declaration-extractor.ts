@@ -124,7 +124,7 @@ async function callGemini(prompt: string): Promise<string> {
  */
 export async function extractDeclaration(
   materials: Array<{
-    fileType: string;
+    materialType: string;
     originalName: string;
     fileUrl: string;
     content?: string;
@@ -148,7 +148,7 @@ export async function extractDeclaration(
  */
 function buildExtractionPrompt(
   materials: Array<{
-    fileType: string;
+    materialType: string;
     originalName: string;
     fileUrl: string;
     content?: string;
@@ -167,7 +167,7 @@ function buildExtractionPrompt(
 
 材料清单：
 ${materials.map((m, i) => {
-  const typeLabel = fileTypeLabels[m.fileType] || m.fileType;
+  const typeLabel = fileTypeLabels[m.materialType] || m.materialType;
   return `--- 文件 ${i + 1}: ${m.originalName} (${typeLabel})
 ${m.content || '[文件内容需单独解析]'}`;
 }).join('\n\n')}

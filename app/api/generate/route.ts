@@ -101,9 +101,13 @@ export async function POST(request: NextRequest) {
       notes: item.notes?.value || '',
     }));
 
-    // 确定模板类型
-    const businessDirection = declaration.task?.businessDirection || 'IMPORT';
-    const finalTemplateType = templateType || (businessDirection === 'EXPORT' ? 'export' : 'import');
+    // 确定模板类型（从 businessCategory 和 businessType 推断）
+    const businessCategory = declaration.task?.businessCategory || 'BONDED_ZONE';
+    const businessType = declaration.task?.businessType || '';
+
+    // 根据业务类型推断方向（EXPORT/IMPORT）
+    const isExport = businessType.includes('EXPORT') || businessType.includes('SECOND_OUT') || businessType.includes('TRANSFER');
+    const finalTemplateType = templateType || (isExport ? 'export' : 'import');
 
     // 生成 Excel
     const { buffer, fileName } = await generateDeclarationExcel(header, items, {

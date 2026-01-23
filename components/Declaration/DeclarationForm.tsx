@@ -284,7 +284,7 @@ export function DeclarationForm({ task, onTaskUpdated }: DeclarationFormProps) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           taskId: task.id,
-          templateType: task.businessDirection === 'EXPORT' ? 'export' : 'import',
+          templateType: task.businessType.includes('EXPORT') || task.businessType.includes('SECOND_OUT') || task.businessType.includes('TRANSFER') ? 'export' : 'import',
         }),
       });
 

@@ -45,7 +45,7 @@ export async function POST(request: NextRequest) {
       console.log(`[API:extract] 材料${i + 1}:`, {
         id: m.id,
         originalName: m.originalName,
-        fileType: m.fileType,
+        materialType: m.materialType,
         mimeType: m.mimeType,
         fileUrl: m.fileUrl,
         hasExtractedData: !!m.extractedData,
@@ -106,7 +106,7 @@ export async function POST(request: NextRequest) {
         }
 
         const result = {
-          fileType: m.fileType,
+          materialType: m.materialType,
           originalName: m.originalName,
           fileUrl: m.fileUrl,
           content,
@@ -146,6 +146,7 @@ export async function POST(request: NextRequest) {
         headerData: extracted.header,
         bodyData: extracted.items,
         confidenceScore: overallConfidence,
+        extractionMethod: 'ai-vision', // AI 视觉提取
         isConfirmed: false,
       },
     });

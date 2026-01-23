@@ -6,20 +6,24 @@ import { useTaskStore } from '@/lib/store';
 import { formatDate } from '@/lib/utils';
 import Link from 'next/link';
 import { useState } from 'react';
-import { BusinessDirection, TaskStatus } from '@/types';
-import { TASK_STATUS_LABELS, BUSINESS_DIRECTION_LABELS } from '@/lib/constants';
+import { TaskStatus } from '@/types';
+import { TASK_STATUS_LABELS } from '@/lib/constants';
 
 // 获取业务类型名称
 function getBusinessTypeName(task: any): string {
-  const direction = BUSINESS_DIRECTION_LABELS[task.businessDirection] || task.businessDirection;
-  return `${direction}申报`;
+  const categoryLabels: Record<string, string> = {
+    'BONDED_ZONE': '综保区',
+    'PORT': '口岸',
+  };
+  const category = categoryLabels[task.businessCategory] || task.businessCategory;
+  return `${category}申报`;
 }
 
 export default function TasksPage() {
   const { tasks, deleteTask } = useTaskStore();
   const [searchText, setSearchText] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
-  const [directionFilter, setDirectionFilter] = useState<BusinessDirection | 'all'>('all');
+  const [categoryFilter, setCategoryFilter] = useState<string>('all');
 
   // 过滤任务
   const filteredTasks = tasks.filter((task) => {
@@ -31,9 +35,9 @@ export default function TasksPage() {
 
     const matchStatus = statusFilter === 'all' || task.status === statusFilter;
 
-    const matchDirection = directionFilter === 'all' || task.businessDirection === directionFilter;
+    const matchCategory = categoryFilter === 'all' || task.businessCategory === categoryFilter;
 
-    return matchSearch && matchStatus && matchDirection;
+    return matchSearch && matchStatus && matchCategory;
   });
 
   const columns = [
@@ -136,14 +140,13 @@ export default function TasksPage() {
             ]}
           />
           <Select
-            value={directionFilter}
-            onChange={setDirectionFilter}
+            value={categoryFilter}
+            onChange={setCategoryFilter}
             style={{ width: 120 }}
             options={[
-              { label: '全部业务', value: 'all' },
-              { label: '进口', value: 'IMPORT' },
-              { label: '出口', value: 'EXPORT' },
-              { label: '转仓', value: 'TRANSFER' },
+              { label: '全部类别', value: 'all' },
+              { label: '综保区', value: 'BONDED_ZONE' },
+              { label: '口岸', value: 'PORT' },
             ]}
           />
         </Space>

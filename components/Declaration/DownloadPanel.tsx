@@ -20,10 +20,12 @@ interface DownloadPanelProps {
 // 文件类型标签映射
 const fileTypeLabel: Record<FileType, string> = {
   BILL_OF_LADING: '提单',
-  INVOICE: '发票',
+  COMMERCIAL_INVOICE: '发票',
   PACKING_LIST: '装箱单',
   CONTRACT: '合同',
   CERTIFICATE: '原产地证',
+  CUSTOMS_DECLARATION: '报关单',
+  BONDED_NOTE: '核注清单',
   OTHER: '其他',
 };
 
@@ -45,17 +47,18 @@ export function DownloadPanel({ taskId }: DownloadPanelProps) {
 
   // 单个文件下载
   const handleSingleDownload = (material: Material) => {
+    const fileType = material.materialType;
     const link = document.createElement('a');
     link.href = material.fileUrl;
     link.download = generateDownloadFileName(
       material.originalName,
-      fileTypeLabel[material.fileType],
+      fileTypeLabel[fileType] || fileType,
       task?.preEntryNo || ''
     );
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
-    message.success(`已下载: ${fileTypeLabel[material.fileType]}_${task?.preEntryNo || ''}`);
+    message.success(`已下载: ${fileTypeLabel[fileType] || fileType}_${task?.preEntryNo || ''}`);
   };
 
   // 批量下载打包
@@ -70,11 +73,12 @@ export function DownloadPanel({ taskId }: DownloadPanelProps) {
 
     for (const material of task.materials) {
       try {
+        const fileType = material.materialType;
         const response = await fetch(material.fileUrl);
         const blob = await response.blob();
         const newName = generateDownloadFileName(
           material.originalName,
-          fileTypeLabel[material.fileType],
+          fileTypeLabel[fileType] || fileType,
           task.preEntryNo || task.taskNo
         );
         folder?.file(newName, blob);
@@ -130,12 +134,12 @@ export function DownloadPanel({ taskId }: DownloadPanelProps) {
                   title={
                     <div className="flex items-center gap-2">
                       <span>{material.originalName}</span>
-                      <Tag color="blue">{fileTypeLabel[material.fileType]}</Tag>
+                      <Tag color="blue">{fileTypeLabel[material.materialType] || material.materialType}</Tag>
                     </div>
                   }
                   description={
                     <Space size="middle" className="text-sm">
-                      <span>下载后重命名为: {fileTypeLabel[material.fileType]}_{task.preEntryNo || task.taskNo}.{getFileExtension(material.originalName)}</span>
+                      <span>下载后重命名为: {fileTypeLabel[material.materialType] || material.materialType}_{task.preEntryNo || task.taskNo}.{getFileExtension(material.originalName)}</span>
                     </Space>
                   }
                 />

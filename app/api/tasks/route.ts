@@ -6,7 +6,6 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
-import { BusinessDirection, SupervisionLevel, TradeMode } from '@prisma/client';
 
 /**
  * 生成任务编号
@@ -27,14 +26,13 @@ function generateTaskNo(): string {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { businessDirection, supervisionLevel, tradeMode } = body as {
-      businessDirection: BusinessDirection;
-      supervisionLevel: SupervisionLevel;
-      tradeMode: TradeMode;
+    const { businessCategory, businessType } = body as {
+      businessCategory: 'BONDED_ZONE' | 'PORT';
+      businessType: string;
     };
 
     // 验证参数
-    if (!businessDirection || !supervisionLevel || !tradeMode) {
+    if (!businessCategory || !businessType) {
       return NextResponse.json(
         { success: false, error: '缺少必要参数' },
         { status: 400 }
@@ -44,13 +42,18 @@ export async function POST(request: NextRequest) {
     // 生成任务编号
     const taskNo = generateTaskNo();
 
-    // 创建任务
+    // 创建任务（使用新的业务类型结构）
     const task = await prisma.task.create({
       data: {
         taskNo,
-        businessDirection,
-        supervisionLevel,
-        tradeMode,
+        businessCategory,
+        businessType,
+        bondedZoneType: businessCategory === 'BONDED_ZONE'
+          ? (businessType as any)
+          : null,
+        portType: businessCategory === 'PORT'
+          ? (businessType as any)
+          : null,
         status: 'DRAFT',
       },
     });
@@ -61,9 +64,8 @@ export async function POST(request: NextRequest) {
         taskId: task.id,
         action: 'create',
         details: {
-          businessDirection,
-          supervisionLevel,
-          tradeMode,
+          businessCategory,
+          businessType,
         },
       },
     });
@@ -90,45 +92,58 @@ export async function GET(request: NextRequest) {
     const page = parseInt(searchParams.get('page') || '1');
     const limit = parseInt(searchParams.get('limit') || '10');
     const status = searchParams.get('status');
-    const businessDirection = searchParams.get('businessDirection');
-
-    const skip = (page - 1) * limit;
+    const businessCategory = searchParams.get('businessCategory');
 
     const where: any = {};
     if (status) {
       where.status = status;
     }
-    if (businessDirection) {
-      where.businessDirection = businessDirection;
+    if (businessCategory) {
+      where.businessCategory = businessCategory;
     }
 
-    const [tasks, total] = await Promise.all([
+    const [total, tasks] = await Promise.all([
+      prisma.task.count({ where }),
       prisma.task.findMany({
         where,
-        skip,
+        skip: (page - 1) * limit,
         take: limit,
         orderBy: { createdAt: 'desc' },
         include: {
-          materials: true,
-          declarations: true,
+          materials: {
+            select: {
+              id: true,
+              originalName: true,
+              materialType: true,
+              fileSize: true,
+              createdAt: true,
+            },
+          },
+          declarations: {
+            select: {
+              id: true,
+              confidenceScore: true,
+              isConfirmed: true,
+              createdAt: true,
+            },
+          },
           _count: {
             select: {
               materials: true,
-              generatedFiles: true,
+              declarations: true,
             },
           },
         },
       }),
-      prisma.task.count({ where }),
     ]);
 
     return NextResponse.json({
       success: true,
-      tasks,
-      pagination: {
+      data: {
+        tasks,
+        total,
         page,
         limit,
-        total,
         totalPages: Math.ceil(total / limit),
       },
     });

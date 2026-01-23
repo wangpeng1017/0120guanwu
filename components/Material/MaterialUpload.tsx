@@ -28,7 +28,7 @@ interface MaterialUploadProps {
 function toFileType(type: string): FileType {
   const typeMap: Record<string, FileType> = {
     '提单': 'BILL_OF_LADING',
-    '发票': 'INVOICE',
+    '发票': 'COMMERCIAL_INVOICE',
     '装箱单': 'PACKING_LIST',
     '合同': 'CONTRACT',
     '原产地证': 'CERTIFICATE',
@@ -169,10 +169,12 @@ export function MaterialUpload({ taskId }: MaterialUploadProps) {
   // 文件类型标签映射
   const fileTypeLabel: Record<FileType, string> = {
     BILL_OF_LADING: '提单',
-    INVOICE: '发票',
+    COMMERCIAL_INVOICE: '发票',
     PACKING_LIST: '装箱单',
     CONTRACT: '合同',
     CERTIFICATE: '原产地证',
+    CUSTOMS_DECLARATION: '报关单',
+    BONDED_NOTE: '核注清单',
     OTHER: '其他',
   };
 
@@ -224,7 +226,7 @@ export function MaterialUpload({ taskId }: MaterialUploadProps) {
                     title={
                       <div className="flex items-center gap-2">
                         <span>{material.originalName}</span>
-                        <Tag color="blue">{fileTypeLabel[material.fileType] || material.fileType}</Tag>
+                        <Tag color="blue">{fileTypeLabel[material.materialType] || material.materialType}</Tag>
                       </div>
                     }
                     description={
