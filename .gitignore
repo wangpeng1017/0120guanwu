@@ -46,3 +46,12 @@ temp_docs
 一线进出口-*.pdf
 报关机器.xlsx
 _write_*.py
+# 临时文件
+*.log
+*.pyc
+pdf_extraction_results.json
+_*.py
+*.bak
+
+# Claude配置
+.claude/
