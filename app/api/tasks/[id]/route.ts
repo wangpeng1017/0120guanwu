@@ -18,8 +18,9 @@ type RouteContext = {
 export async function GET(request: NextRequest, context: RouteContext) {
   try {
     const { id } = await context.params;
+    console.log('[Tasks API] 获取任务详情, id:', id);
 
-    const task = await prisma.task.findUnique({
+    let task = await prisma.task.findUnique({
       where: { id },
       include: {
         materials: {
@@ -37,13 +38,58 @@ export async function GET(request: NextRequest, context: RouteContext) {
       },
     });
 
+    // 如果任务不存在且 id 是 "demo"，自动创建一个演示任务
+    if (!task && id === 'demo') {
+      console.log('[Tasks API] 自动创建演示任务');
+      try {
+        task = await prisma.task.create({
+          data: {
+            id: 'demo',
+            taskNo: 'DEMO-001',
+            businessCategory: 'BONDED_ZONE',
+            businessType: 'BONDED_ZONE_FIRST_IMPORT',
+            bondedZoneType: 'FIRST_IMPORT',
+            status: 'DRAFT',
+          },
+          include: {
+            materials: true,
+            declarations: true,
+            generatedFiles: true,
+            operationLogs: true,
+          },
+        });
+        console.log('[Tasks API] 演示任务创建成功:', task.id);
+      } catch (createError) {
+        console.log('[Tasks API] 创建任务失败，尝试重新查询:', createError);
+        task = await prisma.task.findUnique({
+          where: { id },
+          include: {
+            materials: {
+              orderBy: { createdAt: 'asc' },
+            },
+            declarations: {
+              orderBy: { createdAt: 'desc' },
+            },
+            generatedFiles: {
+              orderBy: { createdAt: 'desc' },
+            },
+            operationLogs: {
+              orderBy: { createdAt: 'desc' },
+            },
+          },
+        });
+      }
+    }
+
     if (!task) {
+      console.log('[Tasks API] 任务不存在:', id);
       return NextResponse.json(
         { success: false, error: '任务不存在' },
         { status: 404 }
       );
     }
 
+    console.log('[Tasks API] 返回任务, materials:', task.materials?.length || 0);
     return NextResponse.json({
       success: true,
       task,

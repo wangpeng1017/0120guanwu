@@ -123,22 +123,52 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // 演示模式：初始化任务
+    // 验证或创建任务
+    console.log('[Upload API] taskId:', taskId, 'demoMode:', demoMode);
+
     if (demoMode) {
+      // 演示模式：初始化内存任务
       initDemoTask(taskId);
     } else {
       // 生产模式：验证任务是否存在
       const prisma = (await import('@/lib/prisma')).default;
-      const task = await prisma.task.findUnique({
+      let task = await prisma.task.findUnique({
         where: { id: taskId },
       });
 
+      // 如果任务不存在且 taskId 是 "demo"，自动创建一个临时任务
+      if (!task && taskId === 'demo') {
+        console.log('[Upload API] 自动创建演示任务');
+        try {
+          task = await prisma.task.create({
+            data: {
+              id: 'demo',
+              taskNo: 'DEMO-001',
+              businessCategory: 'BONDED_ZONE',
+              businessType: 'BONDED_ZONE_FIRST_IMPORT',
+              bondedZoneType: 'FIRST_IMPORT',
+              status: 'DRAFT',
+            },
+          });
+          console.log('[Upload API] 演示任务创建成功:', task.id);
+        } catch (createError) {
+          // 可能是并发创建冲突，再次尝试查询
+          console.log('[Upload API] 创建任务失败，尝试重新查询:', createError);
+          task = await prisma.task.findUnique({
+            where: { id: taskId },
+          });
+        }
+      }
+
       if (!task) {
+        console.log('[Upload API] 任务不存在:', taskId);
         return NextResponse.json(
           { success: false, error: '任务不存在' },
           { status: 404 }
         );
       }
+
+      console.log('[Upload API] 任务验证通过:', task.id);
     }
 
     // 验证文件大小（50MB 限制）
