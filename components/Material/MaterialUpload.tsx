@@ -22,6 +22,7 @@ const { Dragger } = Upload;
 
 interface MaterialUploadProps {
   taskId: string;
+  onUploadSuccess?: () => void;
 }
 
 // 将字符串类型转换为 FileType 枚举
@@ -36,7 +37,7 @@ function toFileType(type: string): FileType {
   return typeMap[type] || 'OTHER';
 }
 
-export function MaterialUpload({ taskId }: MaterialUploadProps) {
+export function MaterialUpload({ taskId, onUploadSuccess }: MaterialUploadProps) {
   const { currentTask, setCurrentTask, updateTask } = useTaskStore();
   const task = currentTask?.id === taskId ? currentTask : null;
   const [previewVisible, setPreviewVisible] = useState(false);
@@ -86,6 +87,7 @@ export function MaterialUpload({ taskId }: MaterialUploadProps) {
         }
 
         message.success(`${file.name} 上传成功`);
+        onUploadSuccess?.(); // 通知父组件刷新
       } catch (error) {
         console.error('上传失败:', error);
         message.error('上传失败，请重试');
@@ -93,7 +95,7 @@ export function MaterialUpload({ taskId }: MaterialUploadProps) {
 
       return false; // 阻止默认上传行为
     },
-    [task, taskId, updateTask]
+    [task, taskId, updateTask, onUploadSuccess]
   );
 
   const handleDelete = async (materialId: string) => {
