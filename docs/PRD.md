@@ -1,6 +1,6 @@
 # 关务AI+RPA智能申报系统 产品需求文档 (PRD)
 
-> 最后更新: 2026-01-23 | 版本: 1.0
+> 最后更新: 2026-01-25 | 版本: 1.2
 
 ---
 
@@ -46,6 +46,7 @@
 | F012 | 任务管理 | 任务详情 | 🟢 | P0 | app/dashboard/tasks/[id]/page.tsx |
 | F013 | 材料管理 | 材料清单 | 🟢 | P0 | components/Material/MaterialChecklist.tsx |
 | F014 | 材料管理 | 文件下载 | 🟢 | P1 | components/Declaration/DownloadPanel.tsx |
+| F015 | 委托材料 | 委托书生成 | 🟢 | P1 | lib/delegation/*, app/api/delegation/* |
 
 ---
 
@@ -211,6 +212,39 @@
   - 代码: components/Declaration/DownloadPanel.tsx
 - **关联接口**: -
 
+### F015: 委托书生成
+- **用户故事**: 作为报关员，我希望从Excel中自动提取数据并生成标准格式的电子代理报关委托材料
+- **验收标准**:
+  - [x] 智能Excel解析（支持多种sheet类型：企业、客户、核注清单、发票、装箱单）
+  - [x] 表头智能定位（支持表头位置不固定）
+  - [x] 字段别名匹配（支持同一字段的多种命名方式）
+  - [x] 多文件智能合并（按优先级合并，HS编码自动匹配商品）
+  - [x] 生成委托书（包含委托方、被委托方信息）
+  - [x] 生成委托协议（包含商品明细列表）
+  - [x] 预览功能（表格预览委托书和协议内容）
+  - [x] Excel下载（支持单独下载委托书和协议）
+- **技术备注**:
+  - 核心模块：
+    - lib/delegation/parser.ts - Excel解析器（sheet类型识别、文件优先级计算）
+    - lib/delegation/extractor.ts - 数据提取器（企业、客户、核注清单、商品明细提取）
+    - lib/delegation/merger.ts - 数据合并器（多文件合并、商品去重）
+    - lib/delegation/mapper.ts - 委托映射器（生成委托书和协议）
+    - lib/delegation/excel-exporter.ts - Excel导出器
+  - API接口：
+    - POST /api/delegation/generate - 生成委托材料
+    - POST /api/delegation/download-letter - 下载委托书Excel
+    - POST /api/delegation/download-agreement - 下载委托协议Excel
+  - 前端组件：
+    - app/dashboard/delegation/page.tsx - 委托材料生成页面
+    - components/Delegation/DelegationLetterPreview.tsx - 委托书预览
+    - components/Delegation/DelegationAgreementPreview.tsx - 委托协议预览
+  - 测试覆盖：55个测试全部通过
+    - parser.test.ts: 15个测试 ✅
+    - extractor.test.ts: 22个测试 ✅
+    - merger.test.ts: 11个测试 ✅
+    - mapper.test.ts: 7个测试 ✅
+- **关联接口**: POST /api/delegation/generate, POST /api/delegation/download-letter, POST /api/delegation/download-agreement
+
 ---
 
 ## 四、数据模型概览
@@ -231,3 +265,4 @@
 |------|------|----------|--------|
 | 2026-01-23 | 1.0 | 初始版本，记录已完成功能 | AI |
 | 2026-01-23 | 1.1 | 添加 F004-F014 功能（AI提取、上传等） | AI |
+| 2026-01-25 | 1.2 | 新增 F015 委托书生成功能（Excel智能解析、多文件合并、TDD开发55个测试） | AI |
