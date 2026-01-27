@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -472,88 +473,103 @@ export function DeclarationForm({ task, onTaskUpdated }: DeclarationFormProps) {
       </div>
 
       <Card title="表头信息" className="mb-4">
-        <Form form={form} layout="inline">
-          <Form.Item label="预录入编号" name="preEntryNo">
-            <Input placeholder="预录入编号" />
-          </Form.Item>
-          <Form.Item label="海关编号" name="customsNo">
-            <Input placeholder="海关编号" />
-          </Form.Item>
-          <Form.Item label="境内收发货人" name="domesticConsignee">
-            <Input placeholder="境内收发货人" />
-          </Form.Item>
-          <Form.Item label="境外收发货人" name="overseasConsignee">
-            <Input placeholder="境外收发货人" />
-          </Form.Item>
-          <Form.Item label="申报单位" name="declarant">
-            <Input placeholder="申报单位" />
-          </Form.Item>
-          <Form.Item label="运输方式" name="transportMode">
-            <Input placeholder="运输方式" />
-          </Form.Item>
-          <Form.Item label="运输工具名称" name="vesselName">
-            <Input placeholder="船名" />
-          </Form.Item>
-          <Form.Item label="航次号" name="voyageNo">
-            <Input placeholder="航次号" />
-          </Form.Item>
-          <Form.Item label="提单号" name="billNo">
-            <Input placeholder="提单号" />
-          </Form.Item>
-          <Form.Item label="贸易国别" name="tradeCountry">
-            <Input placeholder="贸易国别" />
-          </Form.Item>
-          <Form.Item label="装货港" name="portOfLoading">
-            <Input placeholder="装货港" />
-          </Form.Item>
-          <Form.Item label="卸货港" name="portOfDischarge">
-            <Input placeholder="卸货港" />
-          </Form.Item>
-          <Form.Item label="进境口岸" name="portOfEntry">
-            <Input placeholder="进境口岸" />
-          </Form.Item>
-          <Form.Item label="运抵国" name="destinationCountry">
-            <Input placeholder="运抵国" />
-          </Form.Item>
-          <Form.Item label="贸易方式" name="tradeMode">
-            <Input placeholder="贸易方式" />
-          </Form.Item>
-          <Form.Item label="征免性质" name="taxMode">
-            <Input placeholder="征免性质" />
-          </Form.Item>
-          <Form.Item label="毛重(KG)" name="grossWeight">
-            <InputNumber min={0} placeholder="毛重" />
-          </Form.Item>
-          <Form.Item label="净重(KG)" name="netWeight">
-            <InputNumber min={0} placeholder="净重" />
-          </Form.Item>
-          <Form.Item label="件数" name="packageCount">
-            <InputNumber min={0} placeholder="件数" />
-          </Form.Item>
-          <Form.Item label="包装种类" name="packageType">
-            <Input placeholder="包装种类" />
-          </Form.Item>
-          <Form.Item label="集装箱号" name="containerNo">
-            <Input placeholder="集装箱号" />
-          </Form.Item>
-          <Form.Item label="币制" name="tradeCurrency">
-            <Input placeholder="币制" />
-          </Form.Item>
-          <Form.Item label="总价" name="totalPrice">
-            <InputNumber min={0} precision={2} placeholder="总价" />
-          </Form.Item>
-          <Form.Item label="发票号" name="invoiceNo">
-            <Input placeholder="发票号" />
-          </Form.Item>
-          <Form.Item label="发票日期" name="invoiceDate">
-            <Input placeholder="YYYY-MM-DD" />
-          </Form.Item>
-          <Form.Item label="合同号" name="contractNo">
-            <Input placeholder="合同号" />
-          </Form.Item>
-          <Form.Item label="备注" name="notes">
-            <Input placeholder="备注" />
-          </Form.Item>
+        <Form form={form} layout="vertical">
+          <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-6 gap-4">
+            {/* 重要字段：占2列 */}
+            <Form.Item label="预录入编号" name="preEntryNo" className="col-span-2">
+              <Input placeholder="预录入编号" />
+            </Form.Item>
+            <Form.Item label="海关编号" name="customsNo" className="col-span-2">
+              <Input placeholder="海关编号" />
+            </Form.Item>
+            <Form.Item label="境内收发货人" name="domesticConsignee" className="col-span-2">
+              <Input placeholder="境内收发货人" />
+            </Form.Item>
+            <Form.Item label="境外收发货人" name="overseasConsignee" className="col-span-2">
+              <Input placeholder="境外收发货人" />
+            </Form.Item>
+            <Form.Item label="申报单位" name="declarant" className="col-span-2">
+              <Input placeholder="申报单位" />
+            </Form.Item>
+
+            {/* 普通字段：占1列 */}
+            <Form.Item label="运输方式" name="transportMode">
+              <Input placeholder="运输方式" />
+            </Form.Item>
+
+            {/* 运输工具名称：占2列 */}
+            <Form.Item label="运输工具名称" name="vesselName" className="col-span-2">
+              <Input placeholder="船名" />
+            </Form.Item>
+
+            <Form.Item label="航次号" name="voyageNo">
+              <Input placeholder="航次号" />
+            </Form.Item>
+
+            {/* 提单号：占2列 */}
+            <Form.Item label="提单号" name="billNo" className="col-span-2">
+              <Input placeholder="提单号" />
+            </Form.Item>
+
+            <Form.Item label="贸易国别" name="tradeCountry">
+              <Input placeholder="贸易国别" />
+            </Form.Item>
+            <Form.Item label="装货港" name="portOfLoading">
+              <Input placeholder="装货港" />
+            </Form.Item>
+            <Form.Item label="卸货港" name="portOfDischarge">
+              <Input placeholder="卸货港" />
+            </Form.Item>
+            <Form.Item label="进境口岸" name="portOfEntry">
+              <Input placeholder="进境口岸" />
+            </Form.Item>
+            <Form.Item label="运抵国" name="destinationCountry">
+              <Input placeholder="运抵国" />
+            </Form.Item>
+            <Form.Item label="贸易方式" name="tradeMode">
+              <Input placeholder="贸易方式" />
+            </Form.Item>
+            <Form.Item label="征免性质" name="taxMode">
+              <Input placeholder="征免性质" />
+            </Form.Item>
+            <Form.Item label="毛重(KG)" name="grossWeight">
+              <InputNumber min={0} placeholder="毛重" className="w-full" />
+            </Form.Item>
+            <Form.Item label="净重(KG)" name="netWeight">
+              <InputNumber min={0} placeholder="净重" className="w-full" />
+            </Form.Item>
+            <Form.Item label="件数" name="packageCount">
+              <InputNumber min={0} placeholder="件数" className="w-full" />
+            </Form.Item>
+            <Form.Item label="包装种类" name="packageType">
+              <Input placeholder="包装种类" />
+            </Form.Item>
+            <Form.Item label="集装箱号" name="containerNo">
+              <Input placeholder="集装箱号" />
+            </Form.Item>
+            <Form.Item label="币制" name="tradeCurrency">
+              <Input placeholder="币制" />
+            </Form.Item>
+            <Form.Item label="总价" name="totalPrice">
+              <InputNumber min={0} precision={2} placeholder="总价" className="w-full" />
+            </Form.Item>
+            <Form.Item label="发票号" name="invoiceNo">
+              <Input placeholder="发票号" />
+            </Form.Item>
+            <Form.Item label="发票日期" name="invoiceDate">
+              <Input placeholder="YYYY-MM-DD" />
+            </Form.Item>
+
+            {/* 合同号：占2列 */}
+            <Form.Item label="合同号" name="contractNo" className="col-span-2">
+              <Input placeholder="合同号" />
+            </Form.Item>
+
+            {/* 备注：占3列 */}
+            <Form.Item label="备注" name="notes" className="col-span-3">
+              <Input placeholder="备注" />
+            </Form.Item>
+          </div>
         </Form>
       </Card>
 

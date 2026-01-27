@@ -1,13 +1,9 @@
 'use client';
 
-import { Card } from 'antd';
-import { MaterialChecklist } from '@/components/Material/MaterialChecklist';
-import { MaterialUpload } from '@/components/Material/MaterialUpload';
-import { DeclarationForm } from '@/components/Declaration/DeclarationForm';
+import DeclarationTabs from '@/components/Declaration/DeclarationTabs';
 import { Task } from '@/types';
 
 export default function BondedZoneTransferPage() {
-
   const defaultTask: Task = {
     id: 'demo',
     taskNo: 'DEMO-001',
@@ -25,6 +21,7 @@ export default function BondedZoneTransferPage() {
     createdAt: new Date(),
     updatedAt: new Date(),
   };
+
   return (
     <div className="space-y-6 fade-in">
       <div>
@@ -32,16 +29,11 @@ export default function BondedZoneTransferPage() {
         <p className="text-gray-500">综合保税区内企业之间货物流转</p>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="space-y-6">
-          <MaterialChecklist businessType="BONDED_ZONE_TRANSFER" />
-          <MaterialUpload taskId="demo" />
-        </div>
-
-        <div>
-          <DeclarationForm task={defaultTask} />
-        </div>
-      </div>
+      <DeclarationTabs
+        task={defaultTask}
+        businessType="BONDED_ZONE_TRANSFER"
+        bondedZoneType="区内流转"
+      />
     </div>
   );
 }

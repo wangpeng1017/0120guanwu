@@ -1,12 +1,9 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Card, Spin, message } from 'antd';
-import { MaterialChecklist } from '@/components/Material/MaterialChecklist';
-import { MaterialUpload } from '@/components/Material/MaterialUpload';
-import { DeclarationForm } from '@/components/Declaration/DeclarationForm';
+import { Spin, message } from 'antd';
+import DeclarationTabs from '@/components/Declaration/DeclarationTabs';
 import { Task } from '@/types';
-import { MaterialType } from '@/types/enums';
 
 export default function BondedZoneFirstImportPage() {
   const [task, setTask] = useState<Task | null>(null);
@@ -47,14 +44,6 @@ export default function BondedZoneFirstImportPage() {
     message.success('文件上传成功');
   };
 
-  // 转换材料数据格式
-  const materialsForChecklist = task?.materials.map(m => ({
-    type: m.materialType as MaterialType,
-    name: m.originalName,
-    uploaded: true,
-    required: false, // 从数据库加载的材料默认为非必填
-  })) || [];
-
   // 默认任务对象（加载时使用）
   const defaultTask: Task = {
     id: 'demo',
@@ -89,24 +78,12 @@ export default function BondedZoneFirstImportPage() {
         <p className="text-gray-500">货物从境外进入综合保税区</p>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* 左侧：材料上传 */}
-        <div className="space-y-6">
-          <MaterialChecklist
-            businessType="BONDED_ZONE_FIRST_IMPORT"
-            materials={materialsForChecklist}
-          />
-          <MaterialUpload
-            taskId="demo"
-            onUploadSuccess={handleUploadSuccess}
-          />
-        </div>
-
-        {/* 右侧：申报要素编辑 */}
-        <div>
-          <DeclarationForm task={task || defaultTask} />
-        </div>
-      </div>
+      <DeclarationTabs
+        task={task || defaultTask}
+        businessType="BONDED_ZONE_FIRST_IMPORT"
+        bondedZoneType="一线进口"
+        onTaskUpdated={handleUploadSuccess}
+      />
     </div>
   );
 }

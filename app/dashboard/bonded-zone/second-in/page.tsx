@@ -1,9 +1,6 @@
 'use client';
 
-import { Card } from 'antd';
-import { MaterialChecklist } from '@/components/Material/MaterialChecklist';
-import { MaterialUpload } from '@/components/Material/MaterialUpload';
-import { DeclarationForm } from '@/components/Declaration/DeclarationForm';
+import DeclarationTabs from '@/components/Declaration/DeclarationTabs';
 import { Task } from '@/types';
 
 export default function BondedZoneSecondInPage() {
@@ -32,16 +29,11 @@ export default function BondedZoneSecondInPage() {
         <p className="text-gray-500">货物从境内进入综合保税区</p>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="space-y-6">
-          <MaterialChecklist businessType="BONDED_ZONE_SECOND_IN_ZONE" />
-          <MaterialUpload taskId="demo" />
-        </div>
-
-        <div>
-          <DeclarationForm task={defaultTask} />
-        </div>
-      </div>
+      <DeclarationTabs
+        task={defaultTask}
+        businessType="BONDED_ZONE_SECOND_IN_ZONE"
+        bondedZoneType="二线进仓"
+      />
     </div>
   );
 }
