@@ -2,7 +2,7 @@
 
 import { Tabs } from 'antd';
 import { UploadOutlined, EditOutlined, DownloadOutlined } from '@ant-design/icons';
-import MaterialChecklist from '@/components/Material/MaterialChecklist';
+import { MaterialChecklist } from '@/components/Material/MaterialChecklist';
 import MaterialUpload from '@/components/Material/MaterialUpload';
 import { DeclarationForm } from '@/components/Declaration/DeclarationForm';
 import DownloadPanel from '@/components/Declaration/DownloadPanel';
