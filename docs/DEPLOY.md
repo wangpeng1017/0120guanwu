@@ -14,8 +14,8 @@
 | **访问地址** | http://8.130.182.148:3005 |
 | **操作系统** | CentOS/Alibaba Cloud Linux |
 | **Node.js版本** | 18.x+ |
-| **项目路径** | /root/guanwu-system（待确认） |
-| **PM2进程名** | guanwu-app（待确认） |
+| **项目路径** | /root/guanwu-system |
+| **PM2进程名** | guanwu-app |
 
 ### 1.2 依赖服务
 
