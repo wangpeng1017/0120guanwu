@@ -179,7 +179,10 @@ export default function TaskDetailPage() {
               ),
               children: (
                 <div className="space-y-6">
-                  <MaterialChecklist businessType={task.businessType || 'BONDED_ZONE_FIRST_IMPORT'} />
+                  <MaterialChecklist
+                    businessType={task.businessType || 'BONDED_ZONE_FIRST_IMPORT'}
+                    uploadedMaterials={task.materials}
+                  />
                   <MaterialUpload taskId={task.id} />
                 </div>
               ),

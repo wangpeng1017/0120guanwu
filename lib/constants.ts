@@ -173,7 +173,6 @@ export const MENU_ITEMS = [
     ],
   },
   { key: '/dashboard/tasks', icon: 'UnorderedListOutlined', label: '任务管理' },
-  { key: '/dashboard/history', icon: 'HistoryOutlined', label: '历史记录' },
 ];
 
 // 文件类型映射

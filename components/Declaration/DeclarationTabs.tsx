@@ -39,6 +39,7 @@ export default function DeclarationTabs({
             <div className="max-w-4xl mx-auto space-y-6">
               <MaterialChecklist
                 businessType={businessType}
+                uploadedMaterials={task.materials}
               />
               <MaterialUpload
                 taskId={task.id}

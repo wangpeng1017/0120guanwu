@@ -4,13 +4,13 @@ import path from 'path'
 export default defineConfig({
   test: {
     globals: true,
-    environment: 'node',
-    include: ['**/*.test.ts'],
+    environment: 'happy-dom', // 使用 happy-dom 替代 jsdom
+    include: ['**/*.test.ts', '**/*.test.tsx'],
     coverage: {
       provider: 'v8',
       reporter: ['text', 'json', 'html'],
-      include: ['lib/delegation/**/*.ts'],
-      exclude: ['**/*.test.ts', '**/*.d.ts'],
+      include: ['lib/**/*.ts', 'lib/**/*.tsx', 'components/**/*.ts', 'components/**/*.tsx'],
+      exclude: ['**/*.test.ts', '**/*.test.tsx', '**/*.d.ts'],
       thresholds: {
         branches: 80,
         functions: 80,

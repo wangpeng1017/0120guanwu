@@ -41,8 +41,6 @@ export function Sidebar() {
       setSelectedKey(pathname);
     } else if (pathname.startsWith('/dashboard/tasks')) {
       setSelectedKey('/dashboard/tasks');
-    } else if (pathname.startsWith('/dashboard/history')) {
-      setSelectedKey('/dashboard/history');
     } else {
       setSelectedKey(pathname);
     }
