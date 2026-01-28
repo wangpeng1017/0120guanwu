@@ -75,7 +75,7 @@ export default function DeclarationTabs({
           ),
           children: (
             <div className="max-w-4xl mx-auto">
-              <DownloadPanel taskId={task.id} materials={task.materials} />
+              <DownloadPanel taskId={task.id} />
             </div>
           ),
         },
