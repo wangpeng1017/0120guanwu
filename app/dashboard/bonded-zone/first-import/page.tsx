@@ -1,24 +1,27 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { Spin, message } from 'antd';
+import { useState } from 'react';
+import { message } from 'antd';
 import DeclarationTabs from '@/components/Declaration/DeclarationTabs';
 import { Task } from '@/types';
 
 export default function BondedZoneFirstImportPage() {
   const [task, setTask] = useState<Task | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [refreshKey, setRefreshKey] = useState(0);
+  const [taskId, setTaskId] = useState<string | null>(null);
 
-  // 加载任务数据
-  useEffect(() => {
-    fetchTaskData();
-  }, [refreshKey]);
+  // 上传成功回调
+  const handleUploadSuccess = (newTaskId: string) => {
+    console.log('[页面] 文件上传成功，任务ID:', newTaskId);
+    setTaskId(newTaskId);
+    message.success('文件上传成功');
+    // 刷新任务数据
+    fetchTaskData(newTaskId);
+  };
 
-  const fetchTaskData = async () => {
+  // 获取任务数据
+  const fetchTaskData = async (tid: string) => {
     try {
-      setLoading(true);
-      const response = await fetch('/api/tasks/demo');
+      const response = await fetch(`/api/tasks/${tid}`);
       const data = await response.json();
 
       if (data.success) {
@@ -27,27 +30,16 @@ export default function BondedZoneFirstImportPage() {
           materials: data.data.materials.length,
           types: data.data.materials.map((m: any) => m.materialType),
         });
-      } else {
-        console.error('[���面] 加载任务失败:', data.error);
       }
     } catch (error) {
       console.error('[页面] 加载任务异常:', error);
-    } finally {
-      setLoading(false);
     }
   };
 
-  // 上传成功回调
-  const handleUploadSuccess = () => {
-    console.log('[页面] 文件上传成功，刷新任务数据');
-    setRefreshKey(prev => prev + 1);
-    message.success('文件上传成功');
-  };
-
-  // 默认任务对象（加载时使用）
+  // 默认任务对象（首次上传前使用）
   const defaultTask: Task = {
-    id: 'demo',
-    taskNo: 'DEMO-001',
+    id: 'pending',
+    taskNo: '待创建',
     businessCategory: 'BONDED_ZONE',
     businessType: 'BONDED_ZONE_FIRST_IMPORT',
     bondedZoneType: 'BONDED_ZONE_FIRST_IMPORT',
@@ -63,13 +55,8 @@ export default function BondedZoneFirstImportPage() {
     updatedAt: new Date(),
   };
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <Spin size="large" tip="加载中..." />
-      </div>
-    );
-  }
+  // 使用实际任务或默认任务
+  const currentTask = task || defaultTask;
 
   return (
     <div className="space-y-6 fade-in">
@@ -79,8 +66,9 @@ export default function BondedZoneFirstImportPage() {
       </div>
 
       <DeclarationTabs
-        task={task || defaultTask}
+        task={currentTask}
         businessType="BONDED_ZONE_FIRST_IMPORT"
+        businessCategory="BONDED_ZONE"
         bondedZoneType="一线进口"
         onTaskUpdated={handleUploadSuccess}
       />

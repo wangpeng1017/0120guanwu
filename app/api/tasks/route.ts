@@ -27,7 +27,7 @@ export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
     const { businessCategory, businessType } = body as {
-      businessCategory: 'BONDED_ZONE' | 'PORT';
+      businessCategory: 'BONDED_ZONE' | 'PORT' | 'GENERAL';
       businessType: string;
     };
 
@@ -46,7 +46,7 @@ export async function POST(request: NextRequest) {
     const task = await prisma.task.create({
       data: {
         taskNo,
-        businessCategory,
+        businessCategory: businessCategory as any, // 类型断言,待Prisma重新生成后移除
         businessType,
         bondedZoneType: businessCategory === 'BONDED_ZONE'
           ? (businessType as any)

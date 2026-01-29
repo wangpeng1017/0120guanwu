@@ -21,8 +21,10 @@ import { Material, FileType } from '@/types';
 const { Dragger } = Upload;
 
 interface MaterialUploadProps {
-  taskId: string;
-  onUploadSuccess?: () => void;
+  taskId: string; // 'pending' 表示未创建任务
+  businessCategory?: string;
+  businessType?: string;
+  onUploadSuccess?: (taskId: string) => void;
 }
 
 // 将字符串类型转换为 FileType 枚举
@@ -37,16 +39,17 @@ function toFileType(type: string): FileType {
   return typeMap[type] || 'OTHER';
 }
 
-export function MaterialUpload({ taskId, onUploadSuccess }: MaterialUploadProps) {
+export function MaterialUpload({ taskId, businessCategory, businessType, onUploadSuccess }: MaterialUploadProps) {
   const { currentTask, setCurrentTask, updateTask } = useTaskStore();
   const task = currentTask?.id === taskId ? currentTask : null;
   const [previewVisible, setPreviewVisible] = useState(false);
   const [previewFile, setPreviewFile] = useState<{ url: string; type: string } | null>(null);
+  const [creatingTask, setCreatingTask] = useState(false);
 
   const handleUpload = useCallback(
     async (file: File) => {
       console.log('[上传] 开始上传文件:', file.name, file.size, file.type);
-      
+
       const validation = validateFile(file);
       console.log('[上传] 验证结果:', validation);
       if (!validation.valid) {
@@ -55,11 +58,46 @@ export function MaterialUpload({ taskId, onUploadSuccess }: MaterialUploadProps)
       }
 
       try {
-        console.log('[上传] 准备发送请求, taskId:', taskId);
+        let actualTaskId = taskId;
+
+        // 如果任务未创建，先创建任务
+        if (taskId === 'pending' || !taskId) {
+          if (!businessCategory || !businessType) {
+            message.error('缺少业务类型信息');
+            return false;
+          }
+
+          console.log('[上传] 创建新任务...');
+          setCreatingTask(true);
+
+          const createResponse = await fetch('/api/tasks', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              businessCategory,
+              businessType,
+            }),
+          });
+
+          const createData = await createResponse.json();
+          console.log('[上传] 创建任务响应:', createData);
+
+          if (!createData.success) {
+            message.error(createData.error || '创建任务失败');
+            setCreatingTask(false);
+            return false;
+          }
+
+          actualTaskId = createData.task.id;
+          console.log('[上传] 任务创建成功，ID:', actualTaskId);
+          setCreatingTask(false);
+        }
+
+        console.log('[上传] 准备上传文件, taskId:', actualTaskId);
         // 上传到服务器
         const formData = new FormData();
         formData.append('file', file);
-        formData.append('taskId', taskId);
+        formData.append('taskId', actualTaskId);
 
         const response = await fetch('/api/upload', {
           method: 'POST',
@@ -76,26 +114,28 @@ export function MaterialUpload({ taskId, onUploadSuccess }: MaterialUploadProps)
 
         // 刷新任务列表
         console.log('[上传] 开始刷新任务...');
-        const tasksResponse = await fetch(`/api/tasks/${taskId}`);
+        const tasksResponse = await fetch(`/api/tasks/${actualTaskId}`);
         const taskData = await tasksResponse.json();
         console.log('[上传] 任务数据:', taskData);
 
         if (taskData.success) {
           console.log('[上传] 更新 store, materials:', taskData.task?.materials);
           setCurrentTask(taskData.task);
-          updateTask(taskId, taskData.task);
+          updateTask(actualTaskId, taskData.task);
         }
 
         message.success(`${file.name} 上传成功`);
-        onUploadSuccess?.(); // 通知父组件刷新
+        onUploadSuccess?.(actualTaskId); // 通知父组件刷新，传递新的taskId
       } catch (error) {
         console.error('上传失败:', error);
         message.error('上传失败，请重试');
+      } finally {
+        setCreatingTask(false);
       }
 
       return false; // 阻止默认上传行为
     },
-    [task, taskId, updateTask, onUploadSuccess]
+    [task, taskId, updateTask, onUploadSuccess, businessCategory, businessType]
   );
 
   const handleDelete = async (materialId: string) => {
@@ -183,17 +223,19 @@ export function MaterialUpload({ taskId, onUploadSuccess }: MaterialUploadProps)
   return (
     <Card title="上传材料">
       <Space direction="vertical" size="large" className="w-full">
-        <Dragger {...uploadProps} className="upload-drag-area">
+        <Dragger {...uploadProps} className="upload-drag-area" disabled={creatingTask}>
           <p className="ant-upload-drag-icon">
-            <InboxOutlined className="text-5xl text-gray-400" />
+            <InboxOutlined className={creatingTask ? "text-5xl text-blue-400" : "text-5xl text-gray-400"} />
           </p>
-          <p className="ant-upload-text">点击或拖拽文件到此区域上传</p>
+          <p className="ant-upload-text">
+            {creatingTask ? '正在创建任务...' : '点击或拖拽文件到此区域上传'}
+          </p>
           <p className="ant-upload-hint">
             支持 PDF、Word、Excel、图片等格式，单个文件不超过 50MB
           </p>
         </Dragger>
 
-        {task?.materials && task.materials.length > 0 && (
+        {taskId !== 'pending' && task?.materials && task.materials.length > 0 && (
           <div>
             <h3 className="text-base font-medium mb-3">已上传文件</h3>
             <List

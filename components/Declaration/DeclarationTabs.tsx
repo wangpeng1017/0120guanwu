@@ -11,14 +11,16 @@ import { Task } from '@/types';
 interface DeclarationTabsProps {
   task: Task;
   businessType: string;
+  businessCategory: string; // 新增
   bondedZoneType?: string;
   portType?: string;
-  onTaskUpdated?: () => void;
+  onTaskUpdated?: (taskId: string) => void;
 }
 
 export default function DeclarationTabs({
   task,
   businessType,
+  businessCategory,
   bondedZoneType,
   portType,
   onTaskUpdated,
@@ -43,9 +45,11 @@ export default function DeclarationTabs({
               />
               <MaterialUpload
                 taskId={task.id}
-                onUploadSuccess={() => {
+                businessCategory={businessCategory}
+                businessType={businessType}
+                onUploadSuccess={(taskId) => {
                   if (onTaskUpdated) {
-                    onTaskUpdated();
+                    onTaskUpdated(taskId);
                   }
                 }}
               />

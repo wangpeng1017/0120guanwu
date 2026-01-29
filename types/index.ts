@@ -28,7 +28,7 @@ export type FileType = MaterialType;
 export interface Task {
   id: string;
   taskNo: string;
-  businessCategory: 'BONDED_ZONE' | 'PORT';
+  businessCategory: 'BONDED_ZONE' | 'PORT' | 'GENERAL';
   businessType: string;
   bondedZoneType: string | null;
   portType: string | null;

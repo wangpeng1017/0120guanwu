@@ -22,7 +22,7 @@ import { Task, DeclarationItem, DeclarationHeader } from '@/types';
 
 interface DeclarationFormProps {
   task: Task;
-  onTaskUpdated?: () => void;
+  onTaskUpdated?: (taskId: string) => void;
 }
 
 // 默认空商品项
@@ -202,7 +202,7 @@ export function DeclarationForm({ task, onTaskUpdated }: DeclarationFormProps) {
         // 通知父组件刷新任务数据（如果需要）
         if (onTaskUpdated) {
           console.log('[AI提取] 通知父组件刷新');
-          onTaskUpdated();
+          onTaskUpdated(task.id);
         }
       } else {
         console.error('[AI提取] 提取失败:', result.error);

@@ -6,6 +6,7 @@
 enum BusinessCategory {
   BONDED_ZONE // 综保区进出区清关
   PORT // 口岸进出口清关
+  GENERAL // 一般贸易进出口
 }
 
 // 绑保区业务类型枚举
