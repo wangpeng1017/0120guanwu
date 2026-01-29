@@ -294,13 +294,13 @@ export function DeclarationForm({ task, onTaskUpdated }: DeclarationFormProps) {
       if (result.success) {
         // 下载文件
         window.open(result.generatedFile.downloadUrl, '_blank');
-        message.success('报关单生成成功');
+        message.success('申报发起成功');
       } else {
-        message.error(result.error || '生成失败');
+        message.error(result.error || '申报发起失败');
       }
     } catch (error) {
-      console.error('生成失败:', error);
-      message.error('生成失败，请重试');
+      console.error('申报失败:', error);
+      message.error('申报发起失败，请重试');
     }
   };
 
@@ -466,8 +466,8 @@ export function DeclarationForm({ task, onTaskUpdated }: DeclarationFormProps) {
           <Button icon={<SaveOutlined />} onClick={handleSave}>
             保存草稿
           </Button>
-          <Button icon={<CheckOutlined />} onClick={handleGenerateExcel}>
-            生成报关单
+          <Button icon={<CheckOutlined />} onClick={handleGenerateExcel} type="primary">
+            发起申报
           </Button>
         </Space>
       </div>
