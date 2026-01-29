@@ -9,13 +9,17 @@ enum BusinessCategory {
   GENERAL // 一般贸易进出口
 }
 
-// 绑保区业务类型枚举
+// 绑保区业务类型枚举（完整版）
 enum BondedZoneBusinessType {
-  FIRST_IMPORT // 一线进口
-  FIRST_EXPORT // 一线出口
-  SECOND_IN // 二线进仓
-  SECOND_OUT // 二线出仓
-  TRANSFER // 区内流转
+  BONDED_ZONE_FIRST_IMPORT // 一线进口
+  BONDED_ZONE_FIRST_EXPORT // 一线出口
+  BONDED_ZONE_SECOND_IN_WAREHOUSE // 二线进仓（区间调拨）
+  BONDED_ZONE_SECOND_IN_ZONE // 二线进仓（区内调拨）
+  BONDED_ZONE_SECOND_OUT_GENERAL // 二线出仓（一般贸易）
+  BONDED_ZONE_SECOND_OUT_PROCESSING // 二线出仓（加工贸易）
+  BONDED_ZONE_SECOND_OUT_WAREHOUSE // 二线出仓（区间调拨）
+  BONDED_ZONE_SECOND_OUT_ZONE // 二线出仓（区内调拨）
+  BONDED_ZONE_TRANSFER // 区内流转
 }
 
 // 口岸业务类型枚举
