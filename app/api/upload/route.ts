@@ -146,7 +146,7 @@ export async function POST(request: NextRequest) {
               taskNo: 'DEMO-001',
               businessCategory: 'BONDED_ZONE',
               businessType: 'BONDED_ZONE_FIRST_IMPORT',
-              bondedZoneType: 'FIRST_IMPORT',
+              bondedZoneType: 'BONDED_ZONE_FIRST_IMPORT',
               status: 'DRAFT',
             },
           });
