@@ -6,14 +6,14 @@ export type { FileType };
 // 业务类型配置
 export const BUSINESS_TYPES = {
   'import-first-normal': {
-    name: '一线进口-码头清关',
+    name: '一线进仓-码头清关',
     direction: 'import',
     level: 'first',
     mode: 'normal',
     description: '货物直接进境报关，适用于一般贸易进口',
   },
   'import-first-bonded': {
-    name: '一线进口-入保税仓',
+    name: '一线进仓-入保税仓',
     direction: 'import',
     level: 'first',
     mode: 'normal',
@@ -34,14 +34,14 @@ export const BUSINESS_TYPES = {
     description: '保税货物加工贸易出区',
   },
   'export-first-normal': {
-    name: '一线出口-码头清关',
+    name: '一线出仓-码头清关',
     direction: 'export',
     level: 'first',
     mode: 'normal',
     description: '货物直接出境报关',
   },
   'export-first-bonded': {
-    name: '一线出口-合捷出仓',
+    name: '一线出仓-合捷出仓',
     direction: 'export',
     level: 'first',
     mode: 'normal',
@@ -156,8 +156,8 @@ export const MENU_ITEMS = [
     icon: 'DownloadOutlined',
     label: '综保区进出区清关',
     children: [
-      { key: '/dashboard/bonded-zone/first-import', icon: '', label: '一线进口' },
-      { key: '/dashboard/bonded-zone/first-export', icon: '', label: '一线出口' },
+      { key: '/dashboard/bonded-zone/first-import', icon: '', label: '一线进仓' },
+      { key: '/dashboard/bonded-zone/first-export', icon: '', label: '一线出仓' },
       { key: '/dashboard/bonded-zone/second-in', icon: '', label: '二线进仓' },
       { key: '/dashboard/bonded-zone/second-out', icon: '', label: '二线出仓' },
       { key: '/dashboard/bonded-zone/transfer', icon: '', label: '区内流转' },

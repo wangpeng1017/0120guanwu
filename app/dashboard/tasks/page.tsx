@@ -1,11 +1,11 @@
 'use client';
 
-import { Card, Table, Tag, Button, Space, Input, Select } from 'antd';
-import { EyeOutlined, DeleteOutlined } from '@ant-design/icons';
+import { Card, Table, Tag, Button, Space, Input, Select, message, Spin } from 'antd';
+import { EyeOutlined, DeleteOutlined, ReloadOutlined } from '@ant-design/icons';
 import { useTaskStore } from '@/lib/store';
 import { formatDate } from '@/lib/utils';
 import Link from 'next/link';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { TaskStatus } from '@/types';
 import { TASK_STATUS_LABELS } from '@/lib/constants';
 
@@ -20,10 +20,37 @@ function getBusinessTypeName(task: any): string {
 }
 
 export default function TasksPage() {
-  const { tasks, deleteTask } = useTaskStore();
+  const { tasks, deleteTask, setTasks } = useTaskStore();
   const [searchText, setSearchText] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [categoryFilter, setCategoryFilter] = useState<string>('all');
+  const [loading, setLoading] = useState(true);
+
+  // 获取任务列表
+  useEffect(() => {
+    const fetchTasks = async () => {
+      try {
+        setLoading(true);
+        const response = await fetch('/api/tasks');
+        if (!response.ok) {
+          throw new Error('获取任务列表失败');
+        }
+        const result = await response.json();
+        if (result.success && result.data?.tasks) {
+          setTasks(result.data.tasks);
+        } else {
+          message.error(result.error || '获取任务列表失败');
+        }
+      } catch (error) {
+        console.error('获取任务列表失败:', error);
+        message.error('获取任务列表失败，请重试');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchTasks();
+  }, [setTasks]);
 
   // 过滤任务
   const filteredTasks = tasks.filter((task) => {
@@ -109,58 +136,75 @@ export default function TasksPage() {
 
   return (
     <div className="space-y-6 fade-in">
-      <div>
-        <h1 className="text-2xl font-bold">任务管理</h1>
-        <p className="text-gray-500">查看和管理所有申报任务</p>
+      <div className="flex justify-between items-center">
+        <div>
+          <h1 className="text-2xl font-bold">任务管理</h1>
+          <p className="text-gray-500">查看和管理所有申报任务</p>
+        </div>
+        <Button
+          icon={<ReloadOutlined />}
+          onClick={() => window.location.reload()}
+          loading={loading}
+        >
+          刷新
+        </Button>
       </div>
 
       <Card>
-        {/* 筛选栏 */}
-        <Space className="mb-4" size="middle">
-          <Input
-            placeholder="搜索任务编号、业务类型..."
-            value={searchText}
-            onChange={(e) => setSearchText(e.target.value)}
-            style={{ width: 250 }}
-            allowClear
-          />
-          <Select
-            value={statusFilter}
-            onChange={setStatusFilter}
-            style={{ width: 120 }}
-            options={[
-              { label: '全部状态', value: 'all' },
-              { label: '草稿', value: 'DRAFT' },
-              { label: '上传中', value: 'UPLOADING' },
-              { label: '提取中', value: 'EXTRACTING' },
-              { label: '编辑中', value: 'EDITING' },
-              { label: '生成中', value: 'GENERATING' },
-              { label: '已完成', value: 'COMPLETED' },
-              { label: '失败', value: 'FAILED' },
-            ]}
-          />
-          <Select
-            value={categoryFilter}
-            onChange={setCategoryFilter}
-            style={{ width: 120 }}
-            options={[
-              { label: '全部类别', value: 'all' },
-              { label: '综保区', value: 'BONDED_ZONE' },
-              { label: '口岸', value: 'PORT' },
-            ]}
-          />
-        </Space>
+        {loading ? (
+          <div className="flex justify-center items-center h-64">
+            <Spin size="large" tip="加载任务列表..." />
+          </div>
+        ) : (
+          <>
+            {/* 筛选栏 */}
+            <Space className="mb-4" size="middle">
+              <Input
+                placeholder="搜索任务编号、业务类型..."
+                value={searchText}
+                onChange={(e) => setSearchText(e.target.value)}
+                style={{ width: 250 }}
+                allowClear
+              />
+              <Select
+                value={statusFilter}
+                onChange={setStatusFilter}
+                style={{ width: 120 }}
+                options={[
+                  { label: '全部状态', value: 'all' },
+                  { label: '草稿', value: 'DRAFT' },
+                  { label: '上传中', value: 'UPLOADING' },
+                  { label: '提取中', value: 'EXTRACTING' },
+                  { label: '编辑中', value: 'EDITING' },
+                  { label: '生成中', value: 'GENERATING' },
+                  { label: '已完成', value: 'COMPLETED' },
+                  { label: '失败', value: 'FAILED' },
+                ]}
+              />
+              <Select
+                value={categoryFilter}
+                onChange={setCategoryFilter}
+                style={{ width: 120 }}
+                options={[
+                  { label: '全部类别', value: 'all' },
+                  { label: '综保区', value: 'BONDED_ZONE' },
+                  { label: '口岸', value: 'PORT' },
+                ]}
+              />
+            </Space>
 
-        <Table
-          columns={columns}
-          dataSource={filteredTasks}
-          rowKey="id"
-          pagination={{
-            pageSize: 10,
-            showSizeChanger: true,
-            showTotal: (total) => `共 ${total} 条`,
-          }}
-        />
+            <Table
+              columns={columns}
+              dataSource={filteredTasks}
+              rowKey="id"
+              pagination={{
+                pageSize: 10,
+                showSizeChanger: true,
+                showTotal: (total) => `共 ${total} 条`,
+              }}
+            />
+          </>
+        )}
       </Card>
     </div>
   );

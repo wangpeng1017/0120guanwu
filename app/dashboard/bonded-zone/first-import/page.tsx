@@ -61,7 +61,7 @@ export default function BondedZoneFirstImportPage() {
   return (
     <div className="space-y-6 fade-in">
       <div>
-        <h1 className="text-2xl font-bold">综保区一线进口</h1>
+        <h1 className="text-2xl font-bold">综保区一线进仓</h1>
         <p className="text-gray-500">货物从境外进入综合保税区</p>
       </div>
 
@@ -69,7 +69,7 @@ export default function BondedZoneFirstImportPage() {
         task={currentTask}
         businessType="BONDED_ZONE_FIRST_IMPORT"
         businessCategory="BONDED_ZONE"
-        bondedZoneType="一线进口"
+        bondedZoneType="一线进仓"
         onTaskUpdated={handleUploadSuccess}
       />
     </div>
