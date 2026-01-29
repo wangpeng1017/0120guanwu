@@ -21,10 +21,10 @@ function PortExportPage() {
       const response = await fetch(`/api/tasks/${tid}`);
       const data = await response.json();
       if (data.success) {
-        setTask(data.data);
+        setTask(data.task);
         console.log('[页面] 任务数据已更新:', {
-          materials: data.data.materials.length,
-          types: data.data.materials.map((m: any) => m.materialType),
+          materials: data.task.materials.length,
+          types: data.task.materials.map((m: any) => m.materialType),
         });
       }
     } catch (error) {
