@@ -29,12 +29,46 @@ import { DeclarationForm } from '@/components/Declaration/DeclarationForm';
 import { DownloadPanel } from '@/components/Declaration/DownloadPanel';
 import { TASK_STATUS_LABELS, BUSINESS_DIRECTION_LABELS, SUPERVISION_LEVEL_LABELS, TRADE_MODE_LABELS } from '@/lib/constants';
 
+// 业务类型名称映射
+const BUSINESS_TYPE_NAMES: Record<string, string> = {
+  // 综保区业务
+  'BONDED_ZONE_FIRST_IMPORT': '综保区一线进仓',
+  'BONDED_ZONE_FIRST_EXPORT': '综保区一线出仓',
+  'BONDED_ZONE_SECOND_IN_ZONE': '综保区二线进仓',
+  'BONDED_ZONE_SECOND_OUT_ZONE': '综保区二线出仓',
+  'BONDED_ZONE_TRANSFER': '综保区区内流转',
+  // 口岸业务
+  'PORT_IMPORT': '口岸进口',
+  'PORT_EXPORT': '口岸出口',
+  // 一般贸易
+  'GENERAL_IMPORT': '一般进口',
+  'GENERAL_EXPORT': '一般出口',
+};
+
 // 获取业务类型名称
 function getBusinessTypeName(task: any): string {
-  const direction = BUSINESS_DIRECTION_LABELS[task.businessDirection] || task.businessDirection;
-  const level = SUPERVISION_LEVEL_LABELS[task.supervisionLevel] || task.supervisionLevel;
-  const mode = TRADE_MODE_LABELS[task.tradeMode] || task.tradeMode;
-  return `${direction}-${level}-${mode}`;
+  if (task.businessType && BUSINESS_TYPE_NAMES[task.businessType]) {
+    return BUSINESS_TYPE_NAMES[task.businessType];
+  }
+
+  // 兼容旧数据
+  if (task.businessDirection && task.supervisionLevel && task.tradeMode) {
+    const direction = BUSINESS_DIRECTION_LABELS[task.businessDirection] || task.businessDirection;
+    const level = SUPERVISION_LEVEL_LABELS[task.supervisionLevel] || task.supervisionLevel;
+    const mode = TRADE_MODE_LABELS[task.tradeMode] || task.tradeMode;
+    return `${direction}-${level}-${mode}`;
+  }
+
+  // 根据 businessCategory 生成默认名称
+  if (task.businessCategory === 'BONDED_ZONE') {
+    return '综保区业务';
+  } else if (task.businessCategory === 'PORT') {
+    return '口岸业务';
+  } else if (task.businessCategory === 'GENERAL') {
+    return '一般贸易';
+  }
+
+  return '未知业务类型';
 }
 
 export default function TaskDetailPage() {
