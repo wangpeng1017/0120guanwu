@@ -1,7 +1,7 @@
 'use client';
 
 import { Card, Table, Tag, Button, Space, Input, Select, message, Spin, DatePicker } from 'antd';
-import { EyeOutlined, DeleteOutlined, ReloadOutlined, PlusOutlined, ExportOutlined } from '@ant-design/icons';
+import { EditOutlined, DeleteOutlined, ReloadOutlined, PlusOutlined, ExportOutlined } from '@ant-design/icons';
 import { useTaskStore } from '@/lib/store';
 import { formatDate } from '@/lib/utils';
 import { useRouter } from 'next/navigation';
@@ -93,9 +93,9 @@ export function BusinessTaskList({
     }
   };
 
-  const handleViewDetail = (taskId: string) => {
-    // 新标签页打开任务详情
-    window.open(`/dashboard/tasks/${taskId}`, '_blank');
+  const handleEdit = (taskId: string) => {
+    // 跳转到任务详情页进行编辑（上传材料、AI提取等操作）
+    router.push(`/dashboard/tasks/${taskId}`);
   };
 
   const columns = [
@@ -144,10 +144,10 @@ export function BusinessTaskList({
           <Button
             type="link"
             size="small"
-            icon={<EyeOutlined />}
-            onClick={() => handleViewDetail(record.id)}
+            icon={<EditOutlined />}
+            onClick={() => handleEdit(record.id)}
           >
-            查看
+            编辑
           </Button>
           <Button
             type="link"
