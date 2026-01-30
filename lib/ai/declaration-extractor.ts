@@ -7,26 +7,26 @@
 import { ProxyAgent, fetch as undiciFetch } from 'undici';
 
 /**
- * Gemini 模型列表（按优先级排序）
- * 使用 API 返回的可用模型名称
+ * Gemini 模型列表（按速度和性能排序）
+ * 优先使用最快的模型以提升响应速度
  * 当配额不足时自动切换到下一个模型
  */
 const GEMINI_MODELS = [
-  'gemini-2.5-flash',              // 最新 2.5 Flash
-  'gemini-2.5-pro',                // 最新 2.5 Pro
-  'gemini-3-flash-preview',        // 3.0 Flash 预览版
-  'gemini-3-pro-preview',          // 3.0 Pro 预览版
-  'gemini-2.5-flash-lite',         // 2.5 Flash Lite
-  'gemini-2.5-flash-preview-09-2025',  // 2.5 Flash 预览
+  'gemini-2.5-flash',              // ⚡ 最快 - 2.5 Flash（推荐）
+  'gemini-2.5-flash-lite',         // ⚡ 轻量级 Flash
+  'gemini-flash-latest',           // ⚡ Flash 最新版
+  'gemini-flash-lite-latest',      // ⚡ Flash Lite 最新版
   'gemini-2.0-flash-001',          // 2.0 Flash 001
+  'gemini-2.0-flash',              // 2.0 Flash 稳定版
   'gemini-2.0-flash-lite-001',     // 2.0 Flash Lite 001
-  'gemini-flash-latest',           // Flash 最新版
-  'gemini-flash-lite-latest',      // Flash Lite 最新版
+  'gemini-2.0-flash-lite',         // 2.0 Flash Lite
+  'gemini-2.5-flash-preview-09-2025',  // 2.5 Flash 预览
+  'gemini-2.0-flash-exp',          // 2.0 Flash 实验版
+  'gemini-3-flash-preview',        // 3.0 Flash 预览版
+  'gemini-2.5-pro',                // Pro 版本（速度较慢但更精确）
+  'gemini-3-pro-preview',          // 3.0 Pro 预览版
   'gemini-pro-latest',             // Pro 最新版
   'gemini-exp-1206',               // 实验版 1206
-  'gemini-2.0-flash',              // 2.0 Flash 稳定版
-  'gemini-2.0-flash-lite',         // 2.0 Flash Lite
-  'gemini-2.0-flash-exp',          // 2.0 Flash 实验版
 ] as const;
 
 /** 是否为配额错误 */
@@ -50,8 +50,11 @@ async function callGemini(prompt: string): Promise<string> {
     throw new Error('未配置 GEMINI_API_KEY 环境变量');
   }
 
-  const proxyUrl = process.env.PROXY_URL || 'http://127.0.0.1:7890';
-  const dispatcher = new ProxyAgent(proxyUrl);
+  // 代理配置（可选，仅在需要时启用）
+  const proxyUrl = process.env.PROXY_URL;
+  const dispatcher = proxyUrl ? new ProxyAgent(proxyUrl) : undefined;
+
+  console.log(`[Gemini] 代理配置: ${proxyUrl ? proxyUrl : '未使用代理（直连）'}`);
 
   // 遍历所有模型，直到成功或全部失败
   const errors: Array<{ model: string; error: string }> = [];
@@ -67,9 +70,12 @@ async function callGemini(prompt: string): Promise<string> {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             contents: [{ parts: [{ text: prompt }] }],
-            generationConfig: { temperature: 0.3 },
+            generationConfig: {
+              temperature: 0.3,
+              maxOutputTokens: 8192, // 限制输出长度，加快速度
+            },
           }),
-          dispatcher,
+          ...(dispatcher && { dispatcher }), // 仅在有代理时添加
         }
       );
 
@@ -224,13 +230,14 @@ ${m.content || '[文件内容需单独解析]'}`;
   "overallConfidence": 0.92
 }
 
-注意事项：
-1. 只返回 JSON，不要有其他解释文字
-2. 如果某个字段在材料中找不到，value 为空字符串或 0，confidence 为 0，source 为空
-3. confidence 范围 0-1，表示提取的可信度
-4. source 标注数据来源的文件编号（如"文件1"）
-5. 数值类型的字段（如重量、数量、价格）应返回数字类型
-6. 日期格式统一为 YYYY-MM-DD`;
+**要求**：
+1. 只返回纯 JSON，不要有解释文字或markdown标记
+2. 找不到的字段设为空字符串""或0，confidence设为0
+3. 数值字段（重量、数量、价格）必须是数字类型，不要加引号
+4. 日期格式：YYYY-MM-DD
+5. confidence范围0-1，表示提取可信度
+6. source标注数据来源（如"文件1"、"文件2"）
+7. 快速提取关键信息，无需过度验证`;
 }
 
 /**
