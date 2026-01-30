@@ -45,6 +45,7 @@ export function MaterialUpload({ taskId, businessCategory, businessType, onUploa
   const [previewVisible, setPreviewVisible] = useState(false);
   const [previewFile, setPreviewFile] = useState<{ url: string; type: string } | null>(null);
   const [creatingTask, setCreatingTask] = useState(false);
+  const [uploading, setUploading] = useState(false);
 
   const handleUpload = useCallback(
     async (file: File) => {
@@ -57,6 +58,10 @@ export function MaterialUpload({ taskId, businessCategory, businessType, onUploa
         return false;
       }
 
+      // 显示上传中提示
+      setUploading(true);
+      const hideLoading = message.loading(`正在上传 ${file.name}...`, 0);
+
       try {
         let actualTaskId = taskId;
 
@@ -64,6 +69,8 @@ export function MaterialUpload({ taskId, businessCategory, businessType, onUploa
         if (taskId === 'pending' || !taskId) {
           if (!businessCategory || !businessType) {
             message.error('缺少业务类型信息');
+            setUploading(false);
+            hideLoading();
             return false;
           }
 
@@ -85,6 +92,8 @@ export function MaterialUpload({ taskId, businessCategory, businessType, onUploa
           if (!createData.success) {
             message.error(createData.error || '创建任务失败');
             setCreatingTask(false);
+            setUploading(false);
+            hideLoading();
             return false;
           }
 
@@ -109,6 +118,8 @@ export function MaterialUpload({ taskId, businessCategory, businessType, onUploa
 
         if (!result.success) {
           message.error(result.error || '上传失败');
+          setUploading(false);
+          hideLoading();
           return false;
         }
 
@@ -124,18 +135,22 @@ export function MaterialUpload({ taskId, businessCategory, businessType, onUploa
           updateTask(actualTaskId, taskData.task);
         }
 
-        message.success(`${file.name} 上传成功`);
+        // 隐藏 loading 并显示成功提示
+        hideLoading();
+        message.success(`${file.name} 上传成功，已添加到材料列表`);
         onUploadSuccess?.(actualTaskId); // 通知父组件刷新，传递新的taskId
       } catch (error) {
         console.error('上传失败:', error);
+        hideLoading();
         message.error('上传失败，请重试');
       } finally {
         setCreatingTask(false);
+        setUploading(false);
       }
 
       return false; // 阻止默认上传行为
     },
-    [task, taskId, updateTask, onUploadSuccess, businessCategory, businessType]
+    [task, taskId, updateTask, onUploadSuccess, businessCategory, businessType, setCurrentTask]
   );
 
   const handleDelete = async (materialId: string) => {
@@ -223,12 +238,12 @@ export function MaterialUpload({ taskId, businessCategory, businessType, onUploa
   return (
     <Card title="上传材料">
       <Space direction="vertical" size="large" className="w-full">
-        <Dragger {...uploadProps} className="upload-drag-area" disabled={creatingTask}>
+        <Dragger {...uploadProps} className="upload-drag-area" disabled={creatingTask || uploading}>
           <p className="ant-upload-drag-icon">
-            <InboxOutlined className={creatingTask ? "text-5xl text-blue-400" : "text-5xl text-gray-400"} />
+            <InboxOutlined className={creatingTask || uploading ? "text-5xl text-blue-400" : "text-5xl text-gray-400"} />
           </p>
           <p className="ant-upload-text">
-            {creatingTask ? '正在创建任务...' : '点击或拖拽文件到此区域上传'}
+            {creatingTask ? '正在创建任务...' : uploading ? '正在上传文件...' : '点击或拖拽文件到此区域上传'}
           </p>
           <p className="ant-upload-hint">
             支持 PDF、Word、Excel、图片等格式，单个文件不超过 50MB
