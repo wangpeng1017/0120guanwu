@@ -8,6 +8,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
+import { BondedZoneBusinessType, BusinessCategory, TaskStatus } from '@prisma/client';
 
 type RouteContext = {
   params: Promise<{ id: string }>;
@@ -43,23 +44,36 @@ export async function GET(request: NextRequest, context: RouteContext) {
     if (!task && id === 'demo') {
       console.log('[Tasks API] 自动创建演示任务');
       try {
-        task = await prisma.task.create({
+        const createdTask = await prisma.task.create({
           data: {
             id: 'demo',
             taskNo: 'DEMO-001',
-            businessCategory: 'BONDED_ZONE',
+            businessCategory: BusinessCategory.BONDED_ZONE,
             businessType: 'BONDED_ZONE_FIRST_IMPORT',
-            bondedZoneType: 'BONDED_ZONE_FIRST_IMPORT',
-            status: 'DRAFT',
-          },
-          include: {
-            materials: true,
-            declarations: true,
-            generatedFiles: true,
-            operationLogs: true,
+            bondedZoneType: BondedZoneBusinessType.BONDED_ZONE_FIRST_IMPORT,
+            status: TaskStatus.DRAFT,
           },
         });
-        console.log('[Tasks API] 演示任务创建成功:', task.id);
+        console.log('[Tasks API] 演示任务创建成功:', createdTask.id);
+
+        // 重新查询以获取完整的关联数据
+        task = await prisma.task.findUnique({
+          where: { id: createdTask.id },
+          include: {
+            materials: {
+              orderBy: { createdAt: 'asc' },
+            },
+            declarations: {
+              orderBy: { createdAt: 'desc' },
+            },
+            generatedFiles: {
+              orderBy: { createdAt: 'desc' },
+            },
+            operationLogs: {
+              orderBy: { createdAt: 'desc' },
+            },
+          },
+        });
       } catch (createError) {
         console.log('[Tasks API] 创建任务失败，尝试重新查询:', createError);
         task = await prisma.task.findUnique({
