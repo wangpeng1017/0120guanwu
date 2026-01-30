@@ -147,6 +147,13 @@ export interface DeclarationHeader {
   contractNo: string;
   // 28. 备注
   notes: string;
+
+  // ============================================================
+  // 代理报关委托书信息（可选）
+  // ============================================================
+
+  /** 代理报关委托书信息（仅代理报关时需要） */
+  delegationInfo?: DelegationInfo;
 }
 
 // ============================================================
@@ -229,3 +236,109 @@ export interface DeclarationData {
   header: Partial<DeclarationHeader>;
   items: DeclarationItem[];
 }
+
+
+// ============================================================
+// 电子代理报关委托书字段定义
+// ============================================================
+
+export interface DelegationInfo {
+  // ============================================================
+  // 委托方信息（锁定字段 - 系统自动填充）
+  // ============================================================
+
+  /** 委托方企业海关编码（10位） */
+  clientCompanyCode: string;
+
+  /** 委托方企业名称 */
+  clientCompanyName: string;
+
+  /** 委托方统一社会信用代码（18位） */
+  clientCreditCode: string;
+
+  /** 委托方法人代表授权签署人 */
+  clientAuthorizedPerson: string;
+
+  // ============================================================
+  // 被委托方信息（锁定字段 - 系统自动填充）
+  // ============================================================
+
+  /** 被委托方企业海关编码（10位） */
+  agentCompanyCode: string;
+
+  /** 被委托方企业名称 */
+  agentCompanyName: string;
+
+  /** 被委托方统一社会信用代码（18位） */
+  agentCreditCode: string;
+
+  /** 被委托方法人代表授权签署人 */
+  agentAuthorizedPerson: string;
+
+  // ============================================================
+  // 委托关系信息（可编辑字段）
+  // ============================================================
+
+  /** 委托关系有效期（月） */
+  validityPeriod: '3' | '6' | '9' | '12';
+
+  /** 委托方式：SINGLE=逐票, LONG_TERM=长期 */
+  delegationMode: 'SINGLE' | 'LONG_TERM';
+
+  /** 委托内容（多选数组）
+   * 可选项：报关报检、制单、加工贸易备案、核销、征免税、外汇核销、其他
+   */
+  delegationContent: string[];
+
+  /** 签订日期（YYYY-MM-DD） */
+  signDate: string;
+
+  /** 有效截止日期（YYYY-MM-DD） */
+  validUntil: string;
+
+  // ============================================================
+  // 状态信息（系统字段 - 不可编辑）
+  // ============================================================
+
+  /** 委托书编号 */
+  delegationNo?: string;
+
+  /** 委托关系状态
+   * INITIATED=发起, CONFIRMED=确认, REJECTED=拒绝, EXPIRED=过期作废, TERMINATED=终止
+   */
+  delegationStatus?: 'INITIATED' | 'CONFIRMED' | 'REJECTED' | 'EXPIRED' | 'TERMINATED';
+
+  /** 委托协议份数 */
+  agreementCount?: number;
+}
+
+/**
+ * 委托内容选项常量
+ */
+export const DELEGATION_CONTENT_OPTIONS = [
+  '报关报检',
+  '制单',
+  '加工贸易备案',
+  '核销',
+  '征免税',
+  '外汇核销',
+  '其他',
+] as const;
+
+/**
+ * 委托关系有效期选项
+ */
+export const VALIDITY_PERIOD_OPTIONS = [
+  { label: '3个月', value: '3' },
+  { label: '6个月', value: '6' },
+  { label: '9个月', value: '9' },
+  { label: '12个月', value: '12' },
+] as const;
+
+/**
+ * 委托方式选项
+ */
+export const DELEGATION_MODE_OPTIONS = [
+  { label: '逐票', value: 'SINGLE' },
+  { label: '长期', value: 'LONG_TERM' },
+] as const;

@@ -18,7 +18,9 @@ import {
   SaveOutlined,
   CheckOutlined,
 } from '@ant-design/icons';
-import { Task, DeclarationItem, DeclarationHeader } from '@/types';
+import { Task, DeclarationItem, DeclarationHeader, DelegationInfo } from '@/types';
+import { DelegationSection } from './DelegationSection';
+import { isDelegationRequired, validateDelegationInfo } from '@/lib/delegation-validation';
 
 interface DeclarationFormProps {
   task: Task;
@@ -51,6 +53,24 @@ export function DeclarationForm({ task, onTaskUpdated }: DeclarationFormProps) {
     header: DeclarationHeader | null;
     items: DeclarationItem[];
   }>({ header: null, items: [emptyItem] });
+  const [delegationInfo, setDelegationInfo] = useState<DelegationInfo>({
+    clientCompanyCode: '',
+    clientCompanyName: '',
+    clientCreditCode: '',
+    clientAuthorizedPerson: '',
+    agentCompanyCode: '',
+    agentCompanyName: '',
+    agentCreditCode: '',
+    agentAuthorizedPerson: '',
+    validityPeriod: '6',
+    delegationMode: 'SINGLE',
+    delegationContent: [],
+    signDate: '',
+    validUntil: '',
+  });
+
+  // 是否需要显示委托书区域
+  const showDelegation = isDelegationRequired(task.businessType || '');
 
   // 加载申报数据
   useEffect(() => {
@@ -227,6 +247,15 @@ export function DeclarationForm({ task, onTaskUpdated }: DeclarationFormProps) {
   const handleSave = async () => {
     try {
       const values = await form.validateFields();
+
+      // 如果需要委托书，先验证委托书信息
+      if (showDelegation) {
+        const delegationResult = validateDelegationInfo(delegationInfo);
+        if (!delegationResult.isValid) {
+          message.error(`委托书信息不完整: ${delegationResult.errors[0]}`);
+          return;
+        }
+      }
 
       // 调用 API 更新申报数据
       const response = await fetch(`/api/tasks/${task.id}`, {
@@ -578,6 +607,14 @@ export function DeclarationForm({ task, onTaskUpdated }: DeclarationFormProps) {
           </div>
         </Form>
       </Card>
+
+      {/* 代理报关委托书区域 - 根据业务类型条件显示 */}
+      {showDelegation && (
+        <DelegationSection
+          value={delegationInfo}
+          onChange={setDelegationInfo}
+        />
+      )}
 
       <Card
         title="商品明细"
