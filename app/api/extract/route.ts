@@ -60,6 +60,47 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // ===== 缓存机制：检查是否已有提取结果 =====
+    console.log('[API:extract] 检查缓存：查找已有的提取结果...');
+    const existingDeclaration = await prisma.declaration.findFirst({
+      where: { taskId },
+      orderBy: { createdAt: 'desc' }, // 取最新的
+    });
+
+    if (existingDeclaration) {
+      const confidence = existingDeclaration.confidenceScore || 0;
+      console.log(`[API:extract] 发现已有提取结果，置信度: ${confidence}`);
+
+      // 如果置信度足够高（> 0.6），直接使用缓存结果
+      if (confidence > 0.6) {
+        console.log('[API:extract] ⚡ 缓存命中！直接返回已有结果，跳过AI提取');
+
+        // 更新任务状态为编辑中
+        await prisma.task.update({
+          where: { id: taskId },
+          data: { status: 'EDITING' },
+        });
+
+        // 重新构建 extracted 格式返回
+        const cachedExtracted = {
+          header: existingDeclaration.headerData || {},
+          items: existingDeclaration.bodyData || [],
+          overallConfidence: confidence,
+        };
+
+        return NextResponse.json({
+          success: true,
+          declaration: existingDeclaration,
+          extracted: cachedExtracted,
+          fromCache: true, // 标记来自缓存
+        });
+      } else {
+        console.log(`[API:extract] 置信度较低 (${confidence})，重新执行AI提取`);
+      }
+    } else {
+      console.log('[API:extract] 未发现缓存，将执行AI提取');
+    }
+
     // 更新任务状态为提取中
     console.log('[API:extract] 更新任务状态为 EXTRACTING');
     await prisma.task.update({
@@ -138,8 +179,17 @@ export async function POST(request: NextRequest) {
 
     console.log('[API:extract] 计算置信度:', overallConfidence);
 
-    // 保存提取结果
+    // 保存提取结果（如果之前有低置信度的结果，先删除）
     console.log('[API:extract] 保存提取结果到数据库...');
+
+    // 删除该任务的旧提取结果（避免重复记录累积）
+    if (existingDeclaration) {
+      console.log(`[API:extract] 删除旧的提取结果 ID: ${existingDeclaration.id}`);
+      await prisma.declaration.delete({
+        where: { id: existingDeclaration.id },
+      });
+    }
+
     const declaration = await prisma.declaration.create({
       data: {
         taskId,

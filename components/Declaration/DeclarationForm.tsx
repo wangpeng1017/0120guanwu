@@ -136,7 +136,13 @@ export function DeclarationForm({ task, onTaskUpdated }: DeclarationFormProps) {
 
       if (result.success) {
         console.log('[AI提取] 提取成功，数据:', result.extracted);
-        message.success('AI 提取成功！请检查并补充信息');
+
+        // 根据是否来自缓存显示不同的提示
+        if (result.fromCache) {
+          message.success('⚡ 使用缓存结果，秒速完成！请检查并补充信息', 3);
+        } else {
+          message.success('AI 提取成功！请检查并补充信息');
+        }
 
         // 直接更新本地状态，填充提取的数据
         if (result.extracted) {
