@@ -279,7 +279,7 @@ async function extractSequentially(
           text: '',
           confidence: 0,
           success: false,
-          method: 'fallback',
+          method: 'fallback' as const,
           error: error.message,
           index: i,
           source: String(inputs[i])
@@ -322,7 +322,7 @@ async function extractConcurrently(
             text: '',
             confidence: 0,
             success: false,
-            method: 'fallback',
+            method: 'fallback' as const,
             error: error.message,
             index: i + batchIndex,
             source: String(input)
