@@ -229,7 +229,8 @@ async function extractWithOCRFallback(
       taskId,
       materialId: r.materialId,
       message: r.success ? 'OCR 提取成功' : 'OCR 提取失败'
-  })))
+    }
+  }))
 
   return result
 }
