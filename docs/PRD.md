@@ -1,6 +1,6 @@
 # 关务AI+RPA智能申报系统 产品需求文档 (PRD)
 
-> 最后更新: 2026-01-26 | 版本: 1.3
+> 最后更新: 2026-01-31 | 版本: 1.5
 
 ---
 
@@ -47,6 +47,8 @@
 | F013 | 材料管理 | 材料清单 | 🟢 | P0 | components/Material/MaterialChecklist.tsx |
 | F014 | 材料管理 | 文件下载 | 🟢 | P1 | components/Declaration/DownloadPanel.tsx |
 | F015 | 委托材料 | 委托书生成 | 🟢 | P1 | lib/delegation/*, app/api/delegation/* |
+| F016 | 信息提取 | OCR文本提取 | 🟢 | P0 | lib/ocr/tesseract.ts |
+| F017 | 信息提取 | 智能分组提取 | 🟢 | P0 | lib/ai/group-extractor.ts |
 
 ---
 
@@ -245,6 +247,61 @@
     - mapper.test.ts: 7个测试 ✅
 - **关联接口**: POST /api/delegation/generate, POST /api/delegation/download-letter, POST /api/delegation/download-agreement
 
+### F016: OCR文本提取
+- **用户故事**: 系统应通过OCR从图片和PDF中快速提取文本，作为AI提取的预处理步骤
+- **验收标准**:
+  - [x] 支持从图片路径/Buffer/URL提取文本
+  - [x] 支持中英文混合识别
+  - [x] 支持批量处理多张图片（顺序/并发）
+  - [x] 支持PDF转图片后OCR
+  - [x] 完善的错误处理和降级策略
+  - [x] 超时控制
+- **技术备注**:
+  - 核心模块：
+    - lib/ocr/tesseract.ts - Tesseract OCR封装
+    - lib/ocr/index.ts - 模块导出
+  - 支持的功能：
+    - extractTextFromImage: 单张图片OCR
+    - extractTextFromImages: 批量OCR
+    - extractTextFromPdf: PDF文档OCR
+    - convertPdfToImages: PDF转图片
+  - 测试覆盖：23个测试全部通过，覆盖率92%+
+    - 基础功能测试: 3个 ✅
+    - 语言支持测试: 2个 ✅
+    - 错误处理测试: 4个 ✅
+    - 批量处理测试: 3个 ✅
+    - 性能测试: 2个 ✅
+    - PDF处理测试: 4个 ✅
+- **关联接口**: -
+
+### F017: 智能分组提取
+- **用户故事**: 系统应按业务语义对材料进行智能分组，并发提取后合并结果
+- **验收标准**:
+  - [x] 支持4个分组：价格信息组、运输信息组、货物详情组、其他单证组
+  - [x] 并发提取所有非空组（Promise.allSettled）
+  - [x] 单组失败不影响其他组
+  - [x] 结果合并：表头取最高置信度，表体累加商品项
+  - [x] 完整错误处理和边界情况测试
+- **技术备注**:
+  - 核心模块：
+    - lib/ai/group-extractor.ts - 智能分组提取器
+    - lib/ai/group-extractor.test.ts - 测试文件
+  - 分组策略：
+    - 价格信息组：COMMERCIAL_INVOICE（商业发票）
+    - 运输信息组：BILL_OF_LADING（提单）
+    - 货物详情组：PACKING_LIST（装箱单）、CONTRACT（合同）
+    - 其他单证组：CERTIFICATE、BONDED_NOTE、OTHER
+  - 并发处理：4个组并行，使用 Promise.allSettled 保证容错
+  - 测试覆盖：29个测试全部通过，覆盖率92%+
+    - 分组逻辑测试: 7个 ✅
+    - 单组提取测试: 5个 ✅
+    - 并发提取测试: 4个 ✅
+    - 结果合并测试: 5个 ✅
+    - 完整流程测试: 4个 ✅
+    - 边界情况测试: 3个 ✅
+    - 性能测试: 1个 ✅
+- **关联接口**: -
+
 ---
 
 ## 四、数据模型概览
@@ -267,3 +324,5 @@
 | 2026-01-23 | 1.1 | 添加 F004-F014 功能（AI提取、上传等） | AI |
 | 2026-01-25 | 1.2 | 新增 F015 委托书生成功能（Excel智能解析、多文件合并、TDD开发55个测试） | AI |
 | 2026-01-26 | 1.3 | 所有申报页面改用多标签页布局，申报表单优化为6列Grid布局 | AI |
+| 2026-01-31 | 1.4 | 新增 F016 OCR文本提取功能（TDD开发23个测试，覆盖率92%+） | AI |
+| 2026-01-31 | 1.5 | 新增 F017 智能分组提取功能（TDD开发29个测试，覆盖率92%+） | AI |

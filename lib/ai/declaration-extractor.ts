@@ -243,7 +243,7 @@ ${m.content || '[文件内容需单独解析]'}`;
 /**
  * 解析 AI 返回的 JSON
  */
-function parseAIResponse(responseText: string): {
+export function parseAIResponse(responseText: string): {
   header: Record<string, { value: string | number; confidence: number; source: string }>;
   items: Array<Record<string, { value: string | number; confidence: number; source: string }>>;
   overallConfidence: number;
@@ -302,3 +302,173 @@ export function calculateOverallConfidence(
 export function getAvailableModels(): readonly string[] {
   return GEMINI_MODELS;
 }
+
+/**
+ * 代理配置接口
+ */
+export interface ProxyConfig {
+  enabled: boolean;
+  url?: string;
+  type?: 'http' | 'https' | 'socks4' | 'socks5';
+  host?: string;
+  port?: number;
+  hasAuth?: boolean;
+  error?: string;
+}
+
+/**
+ * 代理连接测试结果接口
+ */
+export interface ProxyTestResult {
+  success: boolean;
+  reachable?: boolean;
+  proxyUrl?: string;
+  error?: string;
+  skipped?: boolean;
+  reason?: string;
+  latency?: number;
+}
+
+/**
+ * 获取代理配置
+ * 从环境变量读取 PROXY_URL 并解析
+ */
+export function getProxyConfig(): ProxyConfig {
+  const proxyUrl = process.env.PROXY_URL;
+
+  if (!proxyUrl || proxyUrl.trim() === '') {
+    return { enabled: false };
+  }
+
+  try {
+    const url = new URL(proxyUrl);
+    const config: ProxyConfig = {
+      enabled: true,
+      url: proxyUrl,
+      type: detectProxyType(proxyUrl),
+      host: url.hostname,
+      port: url.port ? parseInt(url.port, 10) : undefined,
+      hasAuth: !!url.username,
+    };
+
+    return config;
+  } catch (error) {
+    return {
+      enabled: false,
+      error: `无效的代理 URL: ${proxyUrl}`,
+    };
+  }
+}
+
+/**
+ * 检测代理类型
+ */
+export function detectProxyType(proxyUrl: string): 'http' | 'https' | 'socks4' | 'socks5' | undefined {
+  try {
+    const url = new URL(proxyUrl);
+    const protocol = url.protocol.replace(':', '');
+
+    if (protocol === 'http') return 'http';
+    if (protocol === 'https') return 'https';
+    if (protocol === 'socks5') return 'socks5';
+    if (protocol === 'socks4') return 'socks4';
+
+    return undefined;
+  } catch {
+    return undefined;
+  }
+}
+
+/**
+ * 格式化代理 URL 用于日志输出（隐藏密码）
+ */
+export function formatProxyUrlForLog(proxyUrl: string): string {
+  try {
+    const url = new URL(proxyUrl);
+    if (url.password) {
+      // 隐藏密码但保留用户名
+      return `${url.protocol}//${url.username}:***@${url.host}${url.pathname}`;
+    }
+    return proxyUrl;
+  } catch {
+    return proxyUrl;
+  }
+}
+
+/**
+ * 测试代理连接
+ * 尝试通过代理访问 Gemini API 验证连通性
+ */
+export async function testProxyConnection(
+  options: { timeout?: number; testUrl?: string } = {}
+): Promise<ProxyTestResult> {
+  const config = getProxyConfig();
+
+  if (!config.enabled) {
+    return {
+      skipped: true,
+      reason: '未配置代理',
+    };
+  }
+
+  const timeout = options.timeout ?? 10000;
+
+  try {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), timeout);
+
+    const proxyUrl = process.env.PROXY_URL!;
+    const dispatcher = proxyUrl ? new ProxyAgent(proxyUrl) : undefined;
+
+    const testUrl = options.testUrl ?? 'https://www.googleapis.com/$discovery/rest/version';
+    const startTime = Date.now();
+
+    const response = await undiciFetch(testUrl, {
+      method: 'HEAD',
+      dispatcher,
+      signal: controller.signal as any,
+    });
+
+    clearTimeout(timeoutId);
+    const latency = Date.now() - startTime;
+
+    if (response.ok || response.status === 404) {
+      return {
+        success: true,
+        reachable: true,
+        proxyUrl: formatProxyUrlForLog(proxyUrl),
+        latency,
+      };
+    }
+
+    return {
+      success: false,
+      reachable: false,
+      proxyUrl: formatProxyUrlForLog(proxyUrl),
+      error: `HTTP ${response.status}`,
+    };
+  } catch (error: any) {
+    if (error.name === 'AbortError') {
+      return {
+        success: false,
+        reachable: false,
+        error: '连接超时',
+      };
+    }
+
+    const errorMsg = error.message || String(error);
+    const proxyUrl = process.env.PROXY_URL!;
+
+    return {
+      success: false,
+      reachable: false,
+      proxyUrl: formatProxyUrlForLog(proxyUrl),
+      error: errorMsg,
+    };
+  }
+}
+
+/**
+ * 导出 callGemini 用于测试
+ */
+export { callGemini };
