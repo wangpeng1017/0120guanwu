@@ -222,9 +222,9 @@ async function extractWithOCRFallback(
 
   // 添加日志
   logs.push(...result.results.map(r => {
-    const level = r.success ? 'INFO' : 'WARN'
+    const level: 'INFO' | 'WARN' = r.success ? 'INFO' : 'WARN'
     return {
-      level: level as const,
+      level,
       timestamp: new Date().toISOString(),
       taskId,
       materialId: r.materialId,
