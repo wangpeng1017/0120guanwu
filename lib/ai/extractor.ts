@@ -221,12 +221,14 @@ async function extractWithOCRFallback(
   const result = await processMaterialsWithFallback(taskId, materials, ocrFunc)
 
   // 添加日志
-  logs.push(...result.results.map(r => ({
-    level: (r.success ? 'INFO' : 'WARN') as const,
-    timestamp: new Date().toISOString(),
-    taskId,
-    materialId: r.materialId,
-    message: r.success ? 'OCR 提取成功' : 'OCR 提取失败'
+  logs.push(...result.results.map(r => {
+    const level = r.success ? 'INFO' : 'WARN'
+    return {
+      level: level as const,
+      timestamp: new Date().toISOString(),
+      taskId,
+      materialId: r.materialId,
+      message: r.success ? 'OCR 提取成功' : 'OCR 提取失败'
   })))
 
   return result
