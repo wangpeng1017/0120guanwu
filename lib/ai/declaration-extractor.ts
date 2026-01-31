@@ -406,6 +406,7 @@ export async function testProxyConnection(
 
   if (!config.enabled) {
     return {
+      success: false,
       skipped: true,
       reason: '未配置代理',
     };
