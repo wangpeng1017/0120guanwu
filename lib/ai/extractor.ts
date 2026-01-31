@@ -127,7 +127,12 @@ export async function extractDeclarationData(
 
     // 检查是否全部失败
     if (ocrResults.failedCount === materials.length) {
-      return await handleAllMaterialsFailed(taskId, materials)
+      const handlerResult = await handleAllMaterialsFailed(taskId, materials)
+      return {
+        ...handlerResult,
+        errors: [{ group: 'OCR', error: '所有材料OCR失败' }],
+        data: undefined
+      }
     }
 
     // 更新材料内容
