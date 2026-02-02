@@ -7,6 +7,25 @@
 
 ---
 
+## [1.3.2] - 2026-02-02
+
+### 🐛 Bug修复
+
+- **修复 DownloadPanel 组件空值访问错误**
+  - 问题：访问 `/dashboard/tasks/[id]` 页面时报错 `Cannot read properties of undefined (reading 'preEntryNo')`
+  - 原因：DownloadPanel 组件在 task 数据还未从 store 加载完成时就尝试渲染，导致访问 `undefined.preEntryNo`
+  - 修复：在组件顶部添加早期返回检查，如果 task 为 undefined 则显示"加载中..."状态
+  - 影响范围：`components/Declaration/DownloadPanel.tsx`
+  - 提交记录：`2f552a3`
+
+### 🚀 部署
+
+- 使用本地构建模式部署到服务器（避免服务器内存不足）
+- 服务器地址：http://8.130.182.148:3005
+- PM2进程正常运行
+
+---
+
 ## [1.3.1] - 2026-01-29
 
 ### 📝 文案更新
