@@ -136,26 +136,69 @@ export function DeclarationForm({ task, onTaskUpdated }: DeclarationFormProps) {
 
   // AI 提取 - 直接更新本地状态，不需要刷新页面
   const handleAIExtract = async () => {
-    console.log('[AI提取] 开始提取，任务ID:', task.id);
+    console.log('[AI提取] ========== 开始提取 ==========');
+    console.log('[AI提取] 任务ID:', task.id);
     console.log('[AI提取] 任务状态:', task.status);
     console.log('[AI提取] 申报数据:', task.declarations);
+    console.log('[AI提取] 材料数量:', task.materials?.length || 0);
+
+    if (task.materials && task.materials.length > 0) {
+      console.log('[AI提取] 材料列表:');
+      task.materials.forEach((m, i) => {
+        console.log(`[AI提取]   材料${i + 1}: ${m.originalName} (${m.materialType})`);
+      });
+    }
 
     setExtracting(true);
     try {
       console.log('[AI提取] 发送请求到 /api/extract');
+      const requestBody = { taskId: task.id };
+      console.log('[AI提取] 请求体:', JSON.stringify(requestBody, null, 2));
+
       const response = await fetch('/api/extract', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ taskId: task.id }),
+        body: JSON.stringify(requestBody),
       });
 
-      console.log('[AI提取] 响应状态:', response.status);
+      console.log('[AI提取] 响应状态:', response.status, response.statusText);
+      console.log('[AI提取] 响应头 Content-Type:', response.headers.get('content-type'));
 
-      const result = await response.json();
-      console.log('[AI提取] 响应结果:', result);
+      // 先尝试读取原始响应文本
+      const responseText = await response.text();
+      console.log('[AI提取] 原始响应内容:', responseText);
+      console.log('[AI提取] 响应长度:', responseText.length);
+
+      // 如果响应为空
+      if (!responseText || responseText.trim().length === 0) {
+        console.error('[AI提取] ❌ 响应为空！');
+        message.error('服务器返回空响应，请联系管理员');
+        return;
+      }
+
+      // 尝试解析JSON
+      let result;
+      try {
+        result = JSON.parse(responseText);
+        console.log('[AI提取] JSON解析成功:', result);
+      } catch (parseError) {
+        console.error('[AI提取] ❌ JSON解析失败！');
+        console.error('[AI提取] 解析错误:', parseError);
+        console.error('[AI提取] 响应内容不是有效的JSON');
+        console.error('[AI提取] 实际响应:', responseText.substring(0, 500));
+
+        // 检查是否是HTML响应（服务器错误页面）
+        if (responseText.trim().startsWith('<')) {
+          message.error('服务器返回了错误页面，请检查服务器日志');
+        } else {
+          message.error(`服务器响应格式错误: ${responseText.substring(0, 100)}`);
+        }
+        return;
+      }
 
       if (result.success) {
-        console.log('[AI提取] 提取成功，数据:', result.extracted);
+        console.log('[AI提取] ✅ 提取成功！');
+        console.log('[AI提取] 提取数据:', result.extracted);
 
         // 根据是否来自缓存显示不同的提示
         if (result.fromCache) {

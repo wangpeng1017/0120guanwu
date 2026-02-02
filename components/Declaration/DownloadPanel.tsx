@@ -33,6 +33,15 @@ export function DownloadPanel({ taskId }: DownloadPanelProps) {
   const { tasks } = useTaskStore();
   const task = tasks.find((t) => t.id === taskId);
 
+  // 如果 task 还没加载完成，显示加载状态
+  if (!task) {
+    return (
+      <div className="text-center py-8 text-gray-400">
+        加载中...
+      </div>
+    );
+  }
+
   const getFileIcon = (fileName: string) => {
     const ext = getFileExtension(fileName);
     if (['jpg', 'jpeg', 'png', 'gif'].includes(ext)) {
