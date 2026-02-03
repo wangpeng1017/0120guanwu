@@ -1,13 +1,15 @@
-'use client';
+"use client";
 
 import { Card, Table, Tag, Button, Space, Input, Select, message, Spin, DatePicker } from 'antd';
 import { EditOutlined, DeleteOutlined, ReloadOutlined, PlusOutlined, ExportOutlined } from '@ant-design/icons';
 import { useTaskStore } from '@/lib/store';
 import { formatDate } from '@/lib/utils';
 import { useRouter } from 'next/navigation';
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { TaskStatus } from '@/types';
 import { TASK_STATUS_LABELS } from '@/lib/constants';
+import useSWR from 'swr';
+import { fetcher } from '@/lib/swr-config';
 import dayjs from 'dayjs';
 
 const { RangePicker } = DatePicker;
@@ -28,187 +30,121 @@ export function BusinessTaskList({
   createUrl
 }: BusinessTaskListProps) {
   const router = useRouter();
-  const { tasks, deleteTask, setTasks } = useTaskStore();
+  const { setTasks } = useTaskStore();
   const [searchText, setSearchText] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [dateRange, setDateRange] = useState<[dayjs.Dayjs, dayjs.Dayjs] | null>(null);
-  const [loading, setLoading] = useState(true);
 
-  // 获取任务列表
-  useEffect(() => {
-    const fetchTasks = async () => {
-      try {
-        setLoading(true);
-        const response = await fetch('/api/tasks');
-        if (!response.ok) {
-          throw new Error('获取任务列表失败');
-        }
-        const result = await response.json();
-        if (result.success && result.data?.tasks) {
-          setTasks(result.data.tasks);
-        } else {
-          message.error(result.error || '获取任务列表失败');
-        }
-      } catch (error) {
-        console.error('获取任务列表失败:', error);
-        message.error('获取任务列表失败，请重试');
-      } finally {
-        setLoading(false);
-      }
-    };
+  // 使用 SWR 获取任务列表（带缓存）
+  const { data, error, isLoading, mutate } = useSWR('/api/tasks', fetcher, {
+    revalidateOnFocus: false,
+    dedupingInterval: 10000, // 10秒内相同请求去重
+  });
 
-    fetchTasks();
-  }, [setTasks]);
+  const tasks = data?.data?.tasks || [];
 
-  // 过滤任务
-  const filteredTasks = tasks.filter((task) => {
-    // 筛选业务类型和类别
+  // 当数据更新时同步到 store
+  useState(() => {
+    if (tasks.length > 0) {
+      setTasks(tasks);
+    }
+  });
+
+  const filteredTasks = tasks.filter((task: any) => {
     const matchBusinessType = task.businessType === businessType;
     const matchBusinessCategory = task.businessCategory === businessCategory;
-
-    // 搜索任务号或预录入号
     const matchSearch =
       task.taskNo.toLowerCase().includes(searchText.toLowerCase()) ||
       (task.preEntryNo && task.preEntryNo.toLowerCase().includes(searchText.toLowerCase()));
-
-    // 状态筛选
     const matchStatus = statusFilter === 'all' || task.status === statusFilter;
-
-    // 日期范围筛选
     let matchDate = true;
     if (dateRange) {
       const taskDate = dayjs(task.createdAt);
       matchDate = taskDate.isAfter(dateRange[0]) && taskDate.isBefore(dateRange[1]);
     }
-
     return matchBusinessType && matchBusinessCategory && matchSearch && matchStatus && matchDate;
   });
 
   const handleDelete = async (taskId: string) => {
     try {
-      await deleteTask(taskId);
-      message.success('删除成功');
-    } catch (error) {
+      const res = await fetch(`/api/tasks/${taskId}`, { method: 'DELETE' });
+      if (res.ok) {
+        mutate(); // 刷新数据
+        message.success('删除成功');
+      }
+    } catch {
       message.error('删除失败，请重试');
     }
   };
 
   const handleEdit = (taskId: string) => {
-    // 跳转到任务详情页进行编辑（上传材料、AI提取等操作）
     router.push(`/dashboard/tasks/${taskId}`);
   };
 
   const columns = [
-    {
-      title: '任务编号',
-      dataIndex: 'taskNo',
-      key: 'taskNo',
-      width: 180,
-    },
-    {
-      title: '预录入编号',
-      dataIndex: 'preEntryNo',
-      key: 'preEntryNo',
-      width: 180,
-      render: (value: string | null) => value || '待生成',
-    },
+    { title: '任务编号', dataIndex: 'taskNo', key: 'taskNo', width: 180 },
+    { title: '预录入编号', dataIndex: 'preEntryNo', key: 'preEntryNo', width: 180, render: (v: string | null) => v || '待生成' },
     {
       title: '状态',
       dataIndex: 'status',
       key: 'status',
       width: 120,
       render: (status: TaskStatus) => {
-        const statusInfo = TASK_STATUS_LABELS[status] || { text: status, color: 'default' };
-        return <Tag color={statusInfo.color}>{statusInfo.text}</Tag>;
+        const info = TASK_STATUS_LABELS[status] || { text: status, color: 'default' };
+        return <Tag color={info.color}>{info.text}</Tag>;
       },
     },
-    {
-      title: '材料数量',
-      key: 'materialCount',
-      width: 100,
-      render: (_: any, record: any) => record.materials?.length || 0,
-    },
-    {
-      title: '创建时间',
-      dataIndex: 'createdAt',
-      key: 'createdAt',
-      width: 180,
-      render: (date: Date) => formatDate(date),
-    },
+    { title: '材料数量', key: 'materialCount', width: 100, render: (_: any, r: any) => r.materials?.length || 0 },
+    { title: '创建时间', dataIndex: 'createdAt', key: 'createdAt', width: 180, render: (d: Date) => formatDate(d) },
     {
       title: '操作',
       key: 'actions',
       width: 150,
       render: (_: any, record: any) => (
         <Space>
-          <Button
-            type="link"
-            size="small"
-            icon={<EditOutlined />}
-            onClick={() => handleEdit(record.id)}
-          >
-            编辑
-          </Button>
-          <Button
-            type="link"
-            size="small"
-            danger
-            icon={<DeleteOutlined />}
-            onClick={() => handleDelete(record.id)}
-          >
-            删除
-          </Button>
+          <Button type="link" size="small" icon={<EditOutlined />} onClick={() => handleEdit(record.id)}>编辑</Button>
+          <Button type="link" size="small" danger icon={<DeleteOutlined />} onClick={() => handleDelete(record.id)}>删除</Button>
         </Space>
       ),
     },
   ];
 
-  const pendingCount = filteredTasks.filter(t =>
-    t.status === 'DRAFT' || t.status === 'EDITING' || t.status === 'EXTRACTING'
+  const pendingCount = filteredTasks.filter((t: any) =>
+    ['DRAFT', 'EDITING', 'EXTRACTING'].includes(t.status)
   ).length;
+
+  if (error) {
+    return (
+      <Card>
+        <div className="text-center py-8">
+          <p className="text-red-500 mb-4">加载失败，请重试</p>
+          <Button onClick={() => mutate()}>重新加载</Button>
+        </div>
+      </Card>
+    );
+  }
 
   return (
     <div className="space-y-6 fade-in">
-      {/* 头部区域 */}
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-2xl font-bold">{title}</h1>
-          <p className="text-gray-500">
-            {description} · 共 {filteredTasks.length} 条 · 待处理 {pendingCount} 条
-          </p>
+          <p className="text-gray-500">{description} · 共 {filteredTasks.length} 条 · 待处理 {pendingCount} 条</p>
         </div>
         <Space>
-          <Button
-            icon={<ReloadOutlined />}
-            onClick={() => window.location.reload()}
-            loading={loading}
-          >
-            刷新
-          </Button>
-          <Button
-            icon={<ExportOutlined />}
-            onClick={() => message.info('导出功能开发中')}
-          >
-            导出
-          </Button>
-          <Button
-            type="primary"
-            icon={<PlusOutlined />}
-            onClick={() => router.push(createUrl)}
-          >
-            新建任务
-          </Button>
+          <Button icon={<ReloadOutlined />} onClick={() => mutate()} loading={isLoading}>刷新</Button>
+          <Button icon={<ExportOutlined />} onClick={() => message.info('导出功能开发中')}>导出</Button>
+          <Button type="primary" icon={<PlusOutlined />} onClick={() => router.push(createUrl)}>新建任务</Button>
         </Space>
       </div>
 
       <Card>
-        {loading ? (
+        {isLoading ? (
           <div className="flex justify-center items-center h-64">
-            <Spin size="large" tip="加载任务列表..." />
+            <Spin size="large" />
           </div>
         ) : (
           <>
-            {/* 筛选栏 */}
             <Space className="mb-4" size="middle" wrap>
               <Input
                 placeholder="搜索任务编号、预录入号..."
@@ -253,9 +189,7 @@ export function BusinessTaskList({
                 emptyText: (
                   <div className="py-8">
                     <p className="text-gray-400 mb-2">还没有{title}任务</p>
-                    <Button type="link" onClick={() => router.push(createUrl)}>
-                      立即创建第一个任务
-                    </Button>
+                    <Button type="primary" onClick={() => router.push(createUrl)}>立即创建第一个任务</Button>
                   </div>
                 ),
               }}

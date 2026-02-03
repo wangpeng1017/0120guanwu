@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import "antd/dist/reset.css";
+import { SWRProvider } from "@/lib/swr-config";
 
 export const metadata: Metadata = {
   title: "关务AI+RPA智能申报系统",
@@ -14,7 +15,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="zh-CN">
-      <body>{children}</body>
+      <body>
+        <SWRProvider>{children}</SWRProvider>
+      </body>
     </html>
   );
 }

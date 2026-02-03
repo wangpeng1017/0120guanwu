@@ -13,6 +13,19 @@ import { NextRequest, NextResponse } from 'next/server';
 import { uploadFileToOSS } from '@/lib/oss';
 import { FileType, ACCEPTED_FILE_TYPES, MAX_FILE_SIZE } from '@/lib/constants';
 
+/**
+ * 服务端文件接口（兼容 Node.js 环境）
+ * File 类型是浏览器 API，在服务端不可用，因此定义此接口
+ */
+interface ServerFile {
+  name: string;
+  size: number;
+  type: string;
+  arrayBuffer(): Promise<ArrayBuffer>;
+  stream?: () => ReadableStream;
+  text?: () => Promise<string>;
+}
+
 // 文件类型映射（中文名称 -> 枚举值）
 const FILE_TYPE_MAP: Record<string, FileType> = {
   '提单': 'BILL_OF_LADING',
@@ -105,7 +118,7 @@ export async function POST(request: NextRequest) {
 
   try {
     const formData = await request.formData();
-    const file = formData.get('file') as File;
+    const file = formData.get('file') as unknown as ServerFile;
     const taskId = formData.get('taskId') as string;
     const fileTypeParam = formData.get('fileType') as string;
 

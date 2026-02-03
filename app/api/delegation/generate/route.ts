@@ -9,10 +9,23 @@ import { extractDataFromFile } from '@/lib/delegation/extractor'
 import { mergeExcelData } from '@/lib/delegation/merger'
 import { mapDelegationData } from '@/lib/delegation/mapper'
 
+/**
+ * 服务端文件接口（兼容 Node.js 环境）
+ * File 类型是浏览器 API，在服务端不可用，因此定义此接口
+ */
+interface ServerFile {
+  name: string;
+  size: number;
+  type: string;
+  arrayBuffer(): Promise<ArrayBuffer>;
+  stream?: () => ReadableStream;
+  text?: () => Promise<string>;
+}
+
 export async function POST(request: NextRequest) {
   try {
     const formData = await request.formData()
-    const files = formData.getAll('files') as File[]
+    const files = formData.getAll('files') as unknown as ServerFile[]
 
     if (!files || files.length === 0) {
       return NextResponse.json(
