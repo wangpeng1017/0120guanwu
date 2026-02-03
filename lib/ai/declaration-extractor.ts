@@ -72,7 +72,7 @@ async function callGemini(prompt: string): Promise<string> {
             contents: [{ parts: [{ text: prompt }] }],
             generationConfig: {
               temperature: 0.3,
-              maxOutputTokens: 16384, // 增加到 16K 以支持更大的申报数据
+              maxOutputTokens: 32768, // 增加到 32K 以支持更大的申报数据
             },
           }),
           ...(dispatcher && { dispatcher }), // 仅在有代理时添加
