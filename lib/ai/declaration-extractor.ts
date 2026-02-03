@@ -72,7 +72,7 @@ async function callGemini(prompt: string): Promise<string> {
             contents: [{ parts: [{ text: prompt }] }],
             generationConfig: {
               temperature: 0.3,
-              maxOutputTokens: 8192, // 限制输出长度，加快速度
+              maxOutputTokens: 16384, // 增加到 16K 以支持更大的申报数据
             },
           }),
           ...(dispatcher && { dispatcher }), // 仅在有代理时添加
@@ -248,6 +248,9 @@ export function parseAIResponse(responseText: string): {
   items: Array<Record<string, { value: string | number; confidence: number; source: string }>>;
   overallConfidence: number;
 } {
+  console.log('[Gemini] 原始响应内容 (长度:', responseText.length, ')');
+  console.log('[Gemini] 原始响应前500字符:', responseText.substring(0, 500));
+
   let jsonStr = responseText.trim();
 
   if (jsonStr.startsWith('```json')) {
@@ -263,16 +266,25 @@ export function parseAIResponse(responseText: string): {
   const lastBrace = jsonStr.lastIndexOf('}');
 
   if (firstBrace === -1 || lastBrace === -1) {
+    console.error('[Gemini] AI 返回内容中未找到有效的 JSON 花括号');
+    console.error('[Gemini] 完整响应:', responseText);
     throw new Error('AI 返回内容中未找到有效的 JSON');
   }
 
   jsonStr = jsonStr.substring(firstBrace, lastBrace + 1);
+  console.log('[Gemini] 提取的 JSON 字符串 (长度:', jsonStr.length, ')');
+  console.log('[Gemini] 提取的 JSON 前300字符:', jsonStr.substring(0, 300));
 
   try {
-    return JSON.parse(jsonStr);
-  } catch {
-    console.error('解析 AI 返回的 JSON 失败:', jsonStr);
-    throw new Error('解析 AI 返回数据失败');
+    const parsed = JSON.parse(jsonStr);
+    console.log('[Gemini] JSON 解析成功');
+    return parsed;
+  } catch (error: any) {
+    console.error('[Gemini] 解析 AI 返回的 JSON 失败');
+    console.error('[Gemini] JSON parse 错误:', error.message);
+    console.error('[Gemini] 尝试解析的 JSON 字符串:', jsonStr);
+    console.error('[Gemini] 原始响应:', responseText);
+    throw new Error('解析 AI 返回数据失败: ' + error.message);
   }
 }
 
