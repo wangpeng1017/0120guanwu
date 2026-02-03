@@ -86,11 +86,20 @@ export async function generateImportDeclarationExcel(
     fields.forEach(field => {
       const startCol = field.col;
       const endCol = field.col + 2;
-      worksheet.mergeCells(row, startCol, row, endCol);
+
+      // 安全地合并单元格（避免重复合并错误）
+      try {
+        worksheet.mergeCells(row, startCol, row, endCol);
+      } catch (error: any) {
+        // 如果单元格已经合并，忽略错误继续执行
+        if (!error.message.includes('already merged')) {
+          console.warn(`合并单元格警告: ${error.message}`);
+        }
+      }
 
       const labelCell = worksheet.getCell(row, startCol);
       labelCell.value = `${field.label}: ${field.value}`;
-      labelCell.alignment = { vertical: 'middle' };
+      labelCell.alignment = { vertical: 'middle', horizontal: 'left' };
     });
   };
 
@@ -228,11 +237,20 @@ export async function generateExportDeclarationExcel(
     fields.forEach(field => {
       const startCol = field.col;
       const endCol = field.col + 2;
-      worksheet.mergeCells(row, startCol, row, endCol);
+
+      // 安全地合并单元格（避免重复合并错误）
+      try {
+        worksheet.mergeCells(row, startCol, row, endCol);
+      } catch (error: any) {
+        // 如果单元格已经合并，忽略错误继续执行
+        if (!error.message.includes('already merged')) {
+          console.warn(`合并单元格警告: ${error.message}`);
+        }
+      }
 
       const labelCell = worksheet.getCell(row, startCol);
       labelCell.value = `${field.label}: ${field.value}`;
-      labelCell.alignment = { vertical: 'middle' };
+      labelCell.alignment = { vertical: 'middle', horizontal: 'left' };
     });
   };
 
