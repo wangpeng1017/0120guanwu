@@ -16,7 +16,7 @@ import { useUIStore } from '@/lib/store';
 import { MENU_ITEMS } from '@/lib/constants';
 import { useEffect, useState } from 'react';
 
-const iconMap = {
+const iconMap: Record<string, React.ComponentType> = {
   HomeOutlined,
   DownloadOutlined,
   UploadOutlined,

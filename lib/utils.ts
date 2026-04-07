@@ -86,8 +86,18 @@ export function generateDownloadFileName(originalName: string, fileType: string,
   return `${fileType}_${taskNo}.${ext}`;
 }
 
+/**
+ * 文件接口（兼容服务端）
+ * File 是浏览器 API，但在服务端构建时需要类型定义
+ */
+interface FileLike {
+  name: string;
+  size: number;
+  type?: string;
+}
+
 // 验证文件
-export function validateFile(file: File): { valid: boolean; error?: string } {
+export function validateFile(file: FileLike): { valid: boolean; error?: string } {
   const maxSize = 50 * 1024 * 1024; // 50MB
   const acceptedTypes = ['.pdf', '.doc', '.docx', '.xls', '.xlsx', '.csv', '.jpg', '.jpeg', '.png', '.tiff', '.zip', '.rar'];
 
